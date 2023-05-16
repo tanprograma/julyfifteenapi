@@ -18,6 +18,10 @@ const connection = await dbConnect(DB_URI);
 const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use((req, res, next) => {
+  res.append("Access-Control-Allow-Origin", ["*"]);
+  next();
+});
 app.use("/api/commodities", commodities);
 app.use("/api/logs", logs);
 app.use("/api/inventories", inventories);
