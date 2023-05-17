@@ -28,6 +28,29 @@ router.post("/begginingstock/update/:store", async (req, res) => {
   });
   res.send(results);
 });
+router.post("/begginingstocks/update", async (req, res) => {
+  const results = [];
+  const items = req.body.items;
+  for (let i = 0; i < items.length; i++) {
+    const doc = await InventoryModel.findOne({
+      outlet: items[i].outlet,
+      commodity: items[i].commodity,
+    });
+    if (!doc) {
+      results.splice(0, 0, {
+        outlet: items[i].outlet,
+        commodity: items[i].commodity,
+        beggining: 0,
+      });
+      return;
+    }
+    doc.beggining = items[i].beggining;
+    await doc.save();
+    results.splice(0, 0, doc);
+  }
+
+  res.send(results);
+});
 async function updateBeggining(items, stores) {
   // items.forEach(async (element) => {
   //   const inventory = stores.find((i) => {
@@ -44,8 +67,23 @@ async function updateBeggining(items, stores) {
   }
   return results;
 }
+async function updateBegginings(items, stores) {
+  const results = [];
+  for (let i = 0; i < items.length; i++) {
+    const res = await update(items[i], stores);
+    results.push(res);
+  }
+  return results;
+}
 function update(item, stores) {
-  console.log({ storesInve: stores });
+  const inventory = stores.find((i) => {
+    return i.commodity == item.commodity;
+  });
+  if (!inventory) return {};
+  inventory.beginning = item.quantity;
+  return inventory.save();
+}
+function updateMany(item, stores) {
   const inventory = stores.find((i) => {
     return i.commodity == item.commodity;
   });
