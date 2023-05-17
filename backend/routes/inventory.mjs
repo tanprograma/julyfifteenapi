@@ -42,10 +42,16 @@ router.post("/begginingstocks/update", async (req, res) => {
         commodity: items[i].commodity,
         beggining: 0,
       });
+      await LogModel.create({
+        log: `update log inventories:could not add beggining stock for commodity: ${items[i].commodity} in store ${items[i].outlet}`,
+      });
       return;
     }
     doc.beggining = items[i].beggining;
     await doc.save();
+    await LogModel.create({
+      log: `update log inventories:added commodity: ${items[i].commodity} in store ${items[i].outlet}`,
+    });
     results.splice(0, 0, doc);
   }
 
