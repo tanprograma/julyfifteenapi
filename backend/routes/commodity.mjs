@@ -24,6 +24,7 @@ router.post("/create", async (req, res) => {
     const supplier = await StoreModel.create({
       name: "supplier",
       isSupplier: true,
+      isWarehouse: false,
     });
     res.send(resource);
     return;
