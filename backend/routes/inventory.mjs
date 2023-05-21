@@ -3,7 +3,7 @@ import express from "express";
 import { LogModel } from "../models/log.mjs";
 const router = express.Router();
 router.get("/", async (req, res) => {
-  const resource = await InventoryModel.find();
+  const resource = await InventoryModel.find({ active: true });
   await LogModel.create({
     log: `get log inventories:sent ${resource.length} records`,
   });
