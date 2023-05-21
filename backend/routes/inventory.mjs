@@ -9,6 +9,23 @@ router.get("/", async (req, res) => {
   });
   res.send(resource);
 });
+router.get("/dispensed/:store/:date", async (req, res) => {
+  const date = new Date(Number(req.params.date)).valueOf();
+  const maxDate = date.setDate(date.getDate() + 1).valueOf();
+  const resource = await InventoryModel.find({ outlet: req.params.store });
+  const filtered = resource.map((i) => {
+    return {
+      commodity: i.commodity,
+      dispensed: i.dispensed.filter((x) => {
+        return x.date < maxDate || x.date >= date;
+      }),
+    };
+  });
+  await LogModel.create({
+    log: `get log inventories:sent ${filtered.length} records`,
+  });
+  res.send(resource);
+});
 router.post("/create", async (req, res) => {
   const resource = await InventoryModel.create(req.body);
   await LogModel.create({

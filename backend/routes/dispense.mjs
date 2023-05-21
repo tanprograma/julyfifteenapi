@@ -15,12 +15,17 @@ router.get("/reports/:store/:date", async (req, res) => {
   const maxDate = date.setDate(date.getDate() + 1).valueOf();
   const resource = await DispenseModel.find({
     outlet: req.params.store,
-    date: { $lt: maxDate, $gte: date },
+  });
+  const filtered = resource.map((i) => {
+    i.items = i.items.filter((x) => {
+      return x.date < maxDate || x.date >= date;
+    });
+    return i;
   });
   await LogModel.create({
-    log: `get log dispensed:${resource.length} dispenseds `,
+    log: `get log dispensed:return ${filtered.length} dispenseds `,
   });
-  res.send(resource);
+  res.send(filtered);
 });
 router.post("/create", async (req, res) => {
   const dispensed = await DispenseModel.create(req.body);
