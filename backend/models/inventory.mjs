@@ -4,6 +4,12 @@ const schema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Medicines",
   },
+  active: {
+    type: Boolean,
+    default: () => {
+      return true;
+    },
+  },
   outlet: { type: mongoose.Schema.Types.ObjectId, ref: "Stores" },
   beginning: {
     type: Number,
