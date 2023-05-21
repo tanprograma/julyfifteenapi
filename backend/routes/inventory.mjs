@@ -10,14 +10,14 @@ router.get("/", async (req, res) => {
   res.send(resource);
 });
 router.get("/dispensed/:store/:date", async (req, res) => {
-  const date = new Date(Number(req.params.date)).valueOf();
+  const date = new Date(Number(req.params.date));
   const maxDate = date.setDate(date.getDate() + 1).valueOf();
   const resource = await InventoryModel.find({ outlet: req.params.store });
   const filtered = resource.map((i) => {
     return {
       commodity: i.commodity,
       dispensed: i.dispensed.filter((x) => {
-        return x.date < maxDate || x.date >= date;
+        return x.date < maxDate || x.date >= date.valueOf();
       }),
     };
   });
