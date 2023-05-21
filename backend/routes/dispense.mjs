@@ -29,10 +29,10 @@ router.get("/reports/:store/:date", async (req, res) => {
 });
 router.post("/create", async (req, res) => {
   const dispensed = await DispenseModel.create(req.body);
-  await LogModel.create({
+  const x = await LogModel.create({
     log: `create log dispensed:created ${dispensed._id}`,
   });
-  const results = await updateInventory(dispensed);
+  const results = updateInventory(dispensed);
   // console.log({ created: dispensed.items });
   res.send(dispensed);
 });
