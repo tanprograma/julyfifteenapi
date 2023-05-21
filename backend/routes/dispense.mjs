@@ -58,7 +58,7 @@ async function updateInventory(data) {
   let results = [];
   for (let i = 0; i < data.items.length; i++) {
     const inventory = await InventoryModel.findOne({
-      commodity: item.commodity,
+      commodity: data.items[i].commodity,
       outlet: data.host,
     });
 
