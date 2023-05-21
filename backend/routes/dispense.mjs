@@ -10,6 +10,18 @@ router.get("/", async (req, res) => {
   });
   res.send(resource);
 });
+router.get("/reports/:store/:date", async (req, res) => {
+  const date = new Date(Number(req.params.date)).valueOf();
+  const maxDate = date.setDate(date.getDate() + 1).valueOf();
+  const resource = await DispenseModel.find({
+    outlet: req.params.store,
+    date: { $lt: maxDate, $gte: date },
+  });
+  await LogModel.create({
+    log: `get log dispensed:${resource.length} dispenseds `,
+  });
+  res.send(resource);
+});
 router.post("/create", async (req, res) => {
   const dispensed = await DispenseModel.create(req.body);
   await LogModel.create({
