@@ -58,15 +58,7 @@ router.post("/create/many", async (req, res) => {
   });
   res.send(resources);
 });
-router.patch("/update/:id", async (req, res) => {
-  const resource = await StoreModel.findById(req.params.id);
-  resource.name = req.body.name;
-  await resource.save();
-  await LogModel.create({
-    log: `update log stores:updated ${req.params.id} `,
-  });
-  res.send(resource);
-});
+
 export default router;
 async function createInventory(store, commodities) {
   const inventories = [];

@@ -3,5 +3,5 @@ const schema = new mongoose.Schema({
   name: { type: String, uppercase: true, trim: true, unique: true },
 });
 
-const MedicineModel = mongoose.model("Medicines", schema);
-export { MedicineModel };
+const SupplierModel = mongoose.model("Suppliers", schema);
+export { SupplierModel };

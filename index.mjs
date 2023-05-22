@@ -1,9 +1,5 @@
-import commodities from "./backend/routes/commodity.mjs";
 import inventories from "./backend/routes/inventory.mjs";
-import dispensed from "./backend/routes/dispense.mjs";
-import requests from "./backend/routes/receive.mjs";
-import strengths from "./backend/routes/strength.mjs";
-import units from "./backend/routes/unit.mjs";
+import suppliers from "./backend/routes/supplier.mjs";
 import stores from "./backend/routes/store.mjs";
 import clients from "./backend/routes/client.mjs";
 import medicines from "./backend/routes/medicine.mjs";
@@ -22,13 +18,10 @@ app.use((req, res, next) => {
   res.append("Access-Control-Allow-Origin", ["*"]);
   next();
 });
-app.use("/api/commodities", commodities);
+
 app.use("/api/logs", logs);
 app.use("/api/inventories", inventories);
-app.use("/api/dispensed", dispensed);
-app.use("/api/requests", requests);
-app.use("/api/strengths", strengths);
-app.use("/api/units", units);
+app.use("/suppliers", suppliers);
 app.use("/api/stores", stores);
 app.use("/api/clients", clients);
 app.use("/api/medicines", medicines);

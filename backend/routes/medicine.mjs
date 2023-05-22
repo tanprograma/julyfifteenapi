@@ -23,13 +23,5 @@ router.post("/create/many", async (req, res) => {
   });
   res.send(resource);
 });
-router.patch("/update/:id", async (req, res) => {
-  const resource = await MedicineModel.findOne({ _id: req.params.id });
-  resource.name = req.body.name;
-  await resource.save();
-  await LogModel.create({
-    log: `update log medicines: updated ${resource._id}`,
-  });
-  res.send(resource);
-});
+
 export default router;

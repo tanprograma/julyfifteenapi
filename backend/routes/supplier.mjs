@@ -1,28 +1,28 @@
-import { ClientModel } from "../models/client.mjs";
+import { SupplierModel } from "../models/suppliers.mjs";
 
 import { LogModel } from "../models/log.mjs";
 import express from "express";
 
 const router = express.Router();
 router.get("/", async (req, res) => {
-  const resource = await ClientModel.find();
+  const resource = await SupplierModel.find();
   await LogModel.create({
-    log: `get log clients:sent ${resource.length} records`,
+    log: `get log suppliers:sent ${resource.length} records`,
   });
   res.send(resource);
 });
 router.post("/create", async (req, res) => {
-  const resource = await ClientModel.create(req.body);
+  const resource = await SupplierModel.create(req.body);
   await LogModel.create({
-    log: `create log clients:added client ${resource.name}`,
+    log: `create log suppliers:added client ${resource.name}`,
   });
 
   res.send(resource);
 });
 router.post("/create/many", async (req, res) => {
-  const resources = await ClientModel.create(req.body);
+  const resources = await SupplierModel.create(req.body);
   await LogModel.create({
-    log: `create log clients:added ${resources.length} clients`,
+    log: `create log suppliers:added ${resources.length} suppliers`,
   });
 
   res.send(resources);

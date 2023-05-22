@@ -1,8 +1,7 @@
 import mongoose from "mongoose";
 const schema = new mongoose.Schema({
   commodity: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Medicines",
+    type: String,
   },
   active: {
     type: Boolean,
@@ -10,8 +9,14 @@ const schema = new mongoose.Schema({
       return true;
     },
   },
-  outlet: { type: mongoose.Schema.Types.ObjectId, ref: "Stores" },
+  outlet: { type: String },
   beginning: {
+    type: Number,
+    default: () => {
+      return 0;
+    },
+  },
+  inventory_level: {
     type: Number,
     default: () => {
       return 0;
@@ -19,30 +24,42 @@ const schema = new mongoose.Schema({
   },
   dispensed: [
     {
-      transaction: { type: mongoose.Schema.Types.ObjectId, ref: "Dispenseds" },
-
+      serial_number: Number,
       quantity: Number,
-      date: Number,
-      unit: { type: mongoose.Schema.Types.ObjectId, ref: "Units" },
+      date: {
+        type: Number,
+        default: () => {
+          return Date.now();
+        },
+      },
+      client: String,
     },
   ],
 
   received: [
     {
-      transaction: { type: mongoose.Schema.Types.ObjectId, ref: "Receiveds" },
-
+      serial_number: Number,
       quantity: Number,
-      date: Number,
-      unit: { type: mongoose.Schema.Types.ObjectId, ref: "Units" },
+      date: {
+        type: Number,
+        default: () => {
+          return Date.now();
+        },
+      },
+      client: String,
     },
   ],
   issued: [
     {
-      transaction: { type: mongoose.Schema.Types.ObjectId, ref: "Receiveds" },
-
+      serial_number: Number,
       quantity: Number,
-      date: Number,
-      unit: { type: mongoose.Schema.Types.ObjectId, ref: "Units" },
+      date: {
+        type: Number,
+        default: () => {
+          return Date.now();
+        },
+      },
+      client: String,
     },
   ],
 });
