@@ -1,6 +1,6 @@
 import { StoreModel } from "../models/store.mjs";
 import { InventoryModel } from "../models/inventory.mjs";
-import { CommodityModel } from "../models/commodity.mjs";
+import { MedicineModel } from "../models/medicine.mjs";
 import { LogModel } from "../models/log.mjs";
 import express from "express";
 
@@ -13,21 +13,15 @@ router.get("/", async (req, res) => {
   res.send(resource);
 });
 router.post("/create", async (req, res) => {
-  const stores = await StoreModel.find();
-  if (!stores.length) {
-    const supplier = await StoreModel.create({
-      name: "supplier",
-      isSupplier: true,
-    });
-  }
   const resource = await StoreModel.create(req.body);
   await LogModel.create({
     log: `create log stores:added store ${resource.name}`,
   });
-  const commodity_status = await CommodityModel.find();
-  if (!commodity_status.length) {
-    res.send(resource);
-    return;
+  const medicines = await MedicineModel.find();
+  if (!medicines.length) {
+    for (let i = 0; i < medicines.length; i++) {
+      await createInventory(resource, medicines[i]);
+    }
   }
   const inventories = await createInventory(resource, commodity_status);
   await LogModel.create({
@@ -37,11 +31,11 @@ router.post("/create", async (req, res) => {
 });
 router.post("/create/many", async (req, res) => {
   const stores = await StoreModel.find();
-  if (!stores.length) {
-    const supplier = await StoreModel.create({
-      name: "supplier",
-      isSupplier: true,
-    });
+  const medicines = await MedicineModel.find();
+  if (!medicines.length && stores.length) {
+    for (let i = 0; i < medicines.length; i++) {
+      await createInventory(stores, medicines[i]);
+    }
   }
   const resources = await StoreModel.create(req.body);
   await LogModel.create({
@@ -58,33 +52,22 @@ router.post("/create/many", async (req, res) => {
   });
   res.send(resources);
 });
+async function createInventories(stores, item) {
+  for (let i = 0; i < stores.length; i++) {
+    await createInventory(stores[i], item);
+  }
+}
+async function createInventory(store, item) {
+  const inventory = await InventoryModel.create({
+    outlet: store.name,
+    commodity: item.name,
+    unit: item.unit,
+    unit_value: item.unit_value,
+  });
+  await inventory.save();
+  await LogModel.create({
+    log: `create log stores:created inventory ${inventory.commodity} in ${store.name} inventories`,
+  });
+}
 
 export default router;
-async function createInventory(store, commodities) {
-  const inventories = [];
-  commodities.forEach((i) => {
-    inventories.push({
-      commodity: i.name,
-      outlet: store._id,
-      dispensed: [],
-      received: [],
-      issued: [],
-    });
-  });
-  return InventoryModel.create(inventories);
-}
-async function createInventories(stores, commodities) {
-  const inventories = [];
-  commodities.forEach((c) => {
-    stores.forEach((store) => {
-      inventories.push({
-        commodity: c.name,
-        outlet: store._id,
-        dispensed: [],
-        received: [],
-        issued: [],
-      });
-    });
-  });
-  return InventoryModel.create(inventories);
-}
