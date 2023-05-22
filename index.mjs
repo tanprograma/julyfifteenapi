@@ -21,7 +21,7 @@ app.use((req, res, next) => {
 
 app.use("/api/logs", logs);
 app.use("/api/inventories", inventories);
-app.use("/suppliers", suppliers);
+app.use("/api/suppliers", suppliers);
 app.use("/api/stores", stores);
 app.use("/api/clients", clients);
 app.use("/api/medicines", medicines);
