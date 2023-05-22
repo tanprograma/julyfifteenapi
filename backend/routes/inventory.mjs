@@ -11,13 +11,15 @@ router.get("/", async (req, res) => {
 });
 router.get("/dispensed/:store/:date", async (req, res) => {
   const date = new Date(Number(req.params.date));
-  const maxDate = date.setDate(date.getDate() + 1).valueOf();
+
   const resource = await InventoryModel.find({ outlet: req.params.store });
   const filtered = resource.map((i) => {
     return {
       commodity: i.commodity,
       dispensed: i.dispensed.filter((x) => {
-        return x.date < maxDate || x.date >= date.valueOf();
+        const testDate = new Date(Number(x.date));
+        const isDate = compareDate(date, testDate);
+        if (isDate) return true;
       }),
     };
   });
@@ -115,4 +117,13 @@ function updateMany(item, stores) {
   return inventory.save();
 }
 
+function compareDate(date, test) {
+  if (!(date.getUTCFullYear() == test.getUTCFullYear())) return false;
+  if (
+    date.getUTCDate() == test.getUTCDate() &&
+    date.getUTCMonth() == test.getUTCMonth()
+  )
+    return true;
+  return false;
+}
 export default router;
