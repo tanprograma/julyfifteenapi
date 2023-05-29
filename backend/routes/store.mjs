@@ -13,44 +13,50 @@ router.get("/", async (req, res) => {
   res.send(resource);
 });
 router.post("/create", async (req, res) => {
-  const resource = await StoreModel.create(req.body);
-  await LogModel.create({
-    log: `create log stores:added store ${resource.name}`,
-  });
-  const medicines = await MedicineModel.find();
-  if (!medicines.length) {
-    for (let i = 0; i < medicines.length; i++) {
-      await createInventory(resource, medicines[i]);
+  try {
+    const store = await StoreModel.create(req.body);
+    await LogModel.create({
+      log: `create log stores:added store ${store.name}`,
+    });
+    const medicines = await MedicineModel.find();
+    if (!medicines.length) {
+      for (let i = 0; i < medicines.length; i++) {
+        await createInventory(resource, medicines[i]);
+      }
     }
-  }
-  const inventories = await createInventory(resource, commodity_status);
-  await LogModel.create({
-    log: `create log stores: created ${inventories.length} inventories`,
-  });
-  res.send(resource);
-});
-router.post("/create/many", async (req, res) => {
-  const stores = await StoreModel.find();
-  const medicines = await MedicineModel.find();
-  if (!medicines.length && stores.length) {
-    for (let i = 0; i < medicines.length; i++) {
-      await createInventory(stores, medicines[i]);
-    }
-  }
-  const resources = await StoreModel.create(req.body);
-  await LogModel.create({
-    log: `create log stores:added ${resources.length} stores`,
-  });
-  const commodity_status = await CommodityModel.find();
-  if (!commodity_status.length) {
-    res.send(resources);
+
+    res.send(store);
+  } catch (error) {
+    console.log("something happened");
+    res.status(500).send([]);
     return;
   }
-  const inventories = await createInventories(resources, commodity_status);
-  await LogModel.create({
-    log: `create log stores:added ${resources.length} inventories`,
-  });
-  res.send(resources);
+});
+router.post("/import", async (req, res) => {
+  try {
+    const stores = await StoreModel.create(req.body);
+
+    await LogModel.create({
+      log: `create log stores:added ${stores.length} stores`,
+    });
+    if (!stores.length) {
+      res.send([]);
+      return;
+    }
+    const medicines = await MedicineModel.find();
+    if (!medicines.length) {
+      res.send(stores);
+      return;
+    }
+
+    for (let i = 0; i < medicines.length; i++) {
+      await createInventories(stores, medicines[i]);
+    }
+
+    res.send(stores);
+  } catch (error) {
+    res.status(400).send([]);
+  }
 });
 async function createInventories(stores, item) {
   for (let i = 0; i < stores.length; i++) {
@@ -58,16 +64,21 @@ async function createInventories(stores, item) {
   }
 }
 async function createInventory(store, item) {
-  const inventory = await InventoryModel.create({
-    outlet: store.name,
-    commodity: item.name,
-    unit: item.unit,
-    unit_value: item.unit_value,
-  });
-  await inventory.save();
-  await LogModel.create({
-    log: `create log stores:created inventory ${inventory.commodity} in ${store.name} inventories`,
-  });
+  try {
+    const inventory = await InventoryModel.create({
+      outlet: store.name,
+      commodity: item.name,
+      unit: item.unit,
+      unit_value: item.unit_value,
+    });
+    await inventory.save();
+    await LogModel.create({
+      log: `create log stores:created inventory ${inventory.commodity} in ${store.name} inventories`,
+    });
+  } catch (error) {
+    console.log("something happened");
+    return;
+  }
 }
 
 export default router;

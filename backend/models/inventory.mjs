@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 const schema = new mongoose.Schema({
   commodity: {
     type: String,
+    required: true,
+    uppercase: true,
   },
   active: {
     type: Boolean,
@@ -9,7 +11,13 @@ const schema = new mongoose.Schema({
       return true;
     },
   },
-  outlet: { type: String },
+  isWarehouse: {
+    type: Boolean,
+    default: () => {
+      return false;
+    },
+  },
+  outlet: { type: String, required: true, uppercase: true },
   beginning: {
     type: Number,
     default: () => {
@@ -24,7 +32,6 @@ const schema = new mongoose.Schema({
   },
   dispensed: [
     {
-      serial_number: Number,
       quantity: Number,
       date: {
         type: Number,
@@ -32,13 +39,22 @@ const schema = new mongoose.Schema({
           return Date.now();
         },
       },
-      client: String,
+      client: {
+        type: String,
+        uppercase: true,
+        client: {
+          type: String,
+          uppercase: true,
+          default: () => {
+            return "CLINIC";
+          },
+        },
+      },
     },
   ],
 
   received: [
     {
-      serial_number: Number,
       quantity: Number,
       date: {
         type: Number,
@@ -46,12 +62,21 @@ const schema = new mongoose.Schema({
           return Date.now();
         },
       },
-      client: String,
+      client: {
+        type: String,
+        uppercase: true,
+        client: {
+          type: String,
+          uppercase: true,
+          default: () => {
+            return "CLINIC";
+          },
+        },
+      },
     },
   ],
   issued: [
     {
-      serial_number: Number,
       quantity: Number,
       date: {
         type: Number,
@@ -59,9 +84,17 @@ const schema = new mongoose.Schema({
           return Date.now();
         },
       },
-      client: String,
+      client: {
+        type: String,
+        uppercase: true,
+        default: () => {
+          return "CLINIC";
+        },
+      },
     },
   ],
+  unit: String,
+  unit_value: Number,
 });
 
 const InventoryModel = mongoose.model("Inventories", schema);

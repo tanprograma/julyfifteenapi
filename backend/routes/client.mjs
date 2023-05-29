@@ -19,13 +19,20 @@ router.post("/create", async (req, res) => {
 
   res.send(resource);
 });
-router.post("/create/many", async (req, res) => {
-  const resources = await ClientModel.create(req.body);
-  await LogModel.create({
-    log: `create log clients:added ${resources.length} clients`,
-  });
-
-  res.send(resources);
+router.post("/import", async (req, res) => {
+  try {
+    const resources = await ClientModel.create(req.body);
+    await LogModel.create({
+      log: `create log clients:added ${resources.length} clients`,
+    });
+    if (!resources.length) {
+      res.send([]);
+      return;
+    }
+    res.send(resources);
+  } catch (error) {
+    res.status(400).send([]);
+  }
 });
 
 export default router;

@@ -9,34 +9,47 @@ router.get("/", async (req, res) => {
   await LogModel.create({
     log: `get log medicines:sent ${resource.length} medicines`,
   });
+  console.log(resource);
   res.send(resource);
 });
 router.post("/create", async (req, res) => {
   const resource = await MedicineModel.create(req.body);
   const stores = await StoreModel.find();
-  if (stores.length) {
-    for (let i = 0; i < stores.length; i++) {
-      await createInventory(resource, stores[i]);
-    }
+  if (!stores.length) {
+    res.send(resource);
+    return;
   }
+  for (let i = 0; i < stores.length; i++) {
+    await createInventory(resource, stores[i]);
+  }
+
   await LogModel.create({
     log: `create log medicines:created ${resource.name}`,
   });
   res.send(resource);
 });
-router.post("/create/many", async (req, res) => {
-  const resource = await MedicineModel.create(req.body);
-  await LogModel.create({
-    log: `create log medicines:created ${resource.length} records`,
-  });
-  const stores = await StoreModel.find();
-  if (stores.length && resource.length) {
+router.post("/import", async (req, res) => {
+  try {
+    const resource = await MedicineModel.create(req.body);
+    await LogModel.create({
+      log: `create log medicines:created ${resource.length} records`,
+    });
+    if (!resource.length) {
+      res.send([]);
+      return;
+    }
+    const stores = await StoreModel.find();
+    if (!stores.length) {
+      res.send(resource);
+      return;
+    }
     for (let i = 0; i < stores.length; i++) {
       await createInventories(resource, stores[i]);
     }
+    res.send(resource);
+  } catch (error) {
+    res.status(400).send([]);
   }
-
-  res.send(resource);
 });
 async function createInventories(items, store) {
   for (let i = 0; i < items.length; i++) {

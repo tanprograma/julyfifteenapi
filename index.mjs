@@ -5,7 +5,7 @@ import clients from "./backend/routes/client.mjs";
 import medicines from "./backend/routes/medicine.mjs";
 import logs from "./backend/routes/logs.mjs";
 import { dbConnect } from "./backend/db.mjs";
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 const DB_URI = process.env.DB_URI;
