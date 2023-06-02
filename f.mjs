@@ -1,10 +1,7 @@
-const list = ["kija", "kija", "kija", 3, 5, "kija"];
-for (let i = 0; i < list.length; i++) {
-  cons(list[i]);
-}
-function cons(item) {
-  if (!item.length) {
-    return;
-  }
-  console.log(item);
-}
+const ar = [{ num: 1 }, { num: 2 }, { num: 3 }, { num: 4 }];
+const arr = [...ar].map((i) => {
+  let { num } = i;
+  num = 2 * num;
+  return { num };
+});
+console.log(ar, arr);
