@@ -1,7 +1,9 @@
 import { InventoryModel } from "../models/inventory.mjs";
 import express from "express";
 import { LogModel } from "../models/log.mjs";
+import { InventoryModule } from "../utilities/inventory.mjs";
 const router = express.Router();
+const Model = new InventoryModule(InventoryModel);
 router.get("/", async (req, res) => {
   const resource = await InventoryModel.find({ active: true });
   await LogModel.create({
@@ -48,20 +50,17 @@ router.post("/create", async (req, res) => {
   });
   res.send(resource);
 });
-router.post("/dispense", async (req, res) => {
-  const inventories = await InventoryModel.find({ outlet: req.body.outlet });
+router.post("/dispense/:store", async (req, res) => {
+  const inventories = await InventoryModel.find({ outlet: req.params.store });
   const results = [];
-  for (let i = 0; i < req.body.items.length; i++) {
+  for (let i = 0; i < req.body.length; i++) {
     const inventory = inventories.find((x) => {
-      return x.commodity == req.body.items[i].commodity;
+      return x.commodity == req.body[i].commodity;
     });
 
     const isInventory = validate(inventory);
     if (isInventory) {
-      inventory.dispensed.splice(0, 0, {
-        client: req.body.client,
-        quantity: req.body.items[i].quantity,
-      });
+      inventory.dispensed.splice(0, 0, req.body[i].payload);
       await inventory.save();
       results.push(inventory);
       await LogModel.create({
@@ -207,12 +206,12 @@ router.post("/inventories/update", async (req, res) => {
 
   res.send(results);
 });
-router.post("/begginings/update", async (req, res) => {
+router.post("/beginnings/update/:store", async (req, res) => {
   const results = [];
   const docs = await InventoryModel.find({
-    outlet: req.body.outlet,
+    outlet: req.params.store,
   });
-  const items = req.body.items;
+  const items = req.body;
   for (let i = 0; i < items.length; i++) {
     const doc = docs.find((docitem) => {
       return docitem.commodity == items[i].commodity;
