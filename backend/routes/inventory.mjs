@@ -2,6 +2,7 @@ import { InventoryModel } from "../models/inventory.mjs";
 import express from "express";
 import { LogModel } from "../models/log.mjs";
 import { InventoryModule } from "../utilities/inventory.mjs";
+
 const router = express.Router();
 const Model = new InventoryModule(InventoryModel);
 router.get("/", async (req, res) => {
@@ -71,82 +72,49 @@ router.post("/dispense/:store", async (req, res) => {
 
   res.send(results);
 });
-// router.post("/issue", async (req, res) => {
-//   const inventories = await InventoryModel.find({ outlet: req.body.outlet });
-//   const inventoriesReceiver = await InventoryModel.find({
-//     outlet: req.body.client,
-//   });
-//   const results = [];
-//   for (let i = 0; i < req.body.items.length; i++) {
-//     const inventory = inventories.find((x) => {
-//       return x.commodity == req.body.items[i].commodity;
-//     });
-//     if (!inventory) return;
-//     inventory.issued.splice(0, 0, {
-//       client: req.body.client,
-//       quantity: req.body.items[i].quantity,
-//     });
-//     await inventory.save();
-//     results.push(inventory);
-//     await LogModel.create({
-//       log: `create log inventories:added to inventory ${inventory.commodity}`,
-//     });
-//     const inventoryReceived = inventoriesReceiver.find((x) => {
-//       return x.commodity == req.body.items[i].commodity;
-//     });
-//     if (!inventoryReceived) return;
-//     inventoryReceived.received.splice(0, 0, {
-//       client: req.body.outlet,
-//       quantity: req.body.items[i].quantity,
-//     });
-//     await inventory.save();
-
-//     await LogModel.create({
-//       log: `create log inventories:received to ${req.body.outlet} ${inventory.commodity}`,
-//     });
-//   }
-
-//   res.send(results);
-// });
-router.post("/issue", async (req, res) => {
-  const issueds = await InventoryModel.find({ outlet: req.body.outlet });
-  const receiveds = await InventoryModel.find({ outlet: req.body.client });
+router.post("/issue/:store", async (req, res) => {
+  const inventories = await InventoryModel.find({ outlet: req.params.store });
+  const recInventories = await InventoryModel.find({
+    outlet: req.body[0].payload.client,
+  });
   const results = [];
-  for (let i = 0; i < req.body.items.length; i++) {
-    const inventory = issueds.find((x) => {
-      return x.commodity == req.body.items[i].commodity;
+
+  for (let i = 0; i < req.body.length; i++) {
+    const inventory = inventories.find((x) => {
+      return x.commodity == req.body[i].commodity;
     });
+
     const isInventory = validate(inventory);
     if (isInventory) {
-      inventory.issued.splice(0, 0, {
-        client: req.body.client,
-        quantity: req.body.items[i].quantity,
-        date: req.body.items[i].date,
-      });
+      inventory.issued.splice(0, 0, req.body[i].payload);
       await inventory.save();
       results.push(inventory);
       await LogModel.create({
-        log: `create log inventories:added ${inventory.commodity} to issued of ${req.body.outlet}`,
+        log: `create log inventories:added to dispensed ${inventory.commodity}`,
       });
     }
   }
-  for (let i = 0; i < req.body.items.length; i++) {
-    const inventory = receiveds.find((x) => {
-      return x.commodity == req.body.items[i].commodity;
+  const toReceive = findIssued(results, req.body);
+  const recResults = [];
+  for (let i = 0; i < toReceive.length; i++) {
+    const recInventory = recInventories.find((x) => {
+      return x.commodity == toReceive[i].commodity;
     });
-    const isInventory = validate(inventory);
-    if (isInventory) {
-      inventory.received.splice(0, 0, req.body.items[i]);
-      await inventory.save();
 
+    const isInventory = validate(recInventory);
+    if (isInventory) {
+      recInventory.received.splice(0, 0, toReceive[i].payload);
+      await recInventory.save();
+      recResults.push(recInventory);
       await LogModel.create({
-        log: `create log inventories:added ${inventory.commodity} to received of ${req.body.client}`,
+        log: `create log inventories:added to received ${recInventory.commodity}`,
       });
     }
   }
 
   res.send(results);
 });
+
 router.post("/beggining/update", async (req, res) => {
   const store = await InventoryModel.findOne({
     outlet: req.body.outlet,
@@ -233,6 +201,31 @@ router.post("/beginnings/update/:store", async (req, res) => {
 
   res.send(results);
 });
+router.post("/delete/:store/:date", async (req, res) => {
+  const items = await InventoryModel.find({ outlet: req.params.store });
+  const start_date = Number(req.params.date);
+  let results = [];
+
+  const date_2 = new Date(start_date);
+
+  const end_date = date_2.setDate(date_2.getDate() + 1);
+
+  for (let i = 0; i < items.length; i++) {
+    let { dispensed } = items[i];
+    const isValid = dispensed.filter((z) => {
+      return z.date >= start_date && z.date < end_date;
+    });
+    if (isValid.length > 0) {
+      dispensed = dispensed.filter((x) => {
+        return !(x.date >= start_date && x.date < end_date);
+      });
+      items[i].dispensed = dispensed;
+      const saved = await items[i].save();
+      results.push(saved);
+    }
+  }
+  res.send(results);
+});
 async function uploadDispensed(items, resources) {
   const uploaded = [];
 
@@ -257,6 +250,18 @@ async function uploadDispensed(items, resources) {
 function validate(item) {
   if (!item) return false;
   return true;
+}
+function findIssued(results, posted) {
+  const isIssued = [];
+  results.forEach((x) => {
+    const f = posted.find((z) => {
+      return z.commodity == x.commodity;
+    });
+    if (!f) return;
+    f.payload.client = x.outlet;
+    isIssued.push(f);
+  });
+  return isIssued;
 }
 
 export default router;
