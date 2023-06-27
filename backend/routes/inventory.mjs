@@ -24,6 +24,25 @@ router.get("/:store", async (req, res) => {
   console.log({ test: resource.length });
   res.send(resource);
 });
+router.get("/clean/dispensed/:store", async (req, res) => {
+  // console.log({ urlstore: req.params.store });
+  const resource = await InventoryModel.find({
+    active: true,
+    outlet: req.params.store,
+  });
+  await LogModel.create({
+    log: `get log inventories:sent ${resource.length} records`,
+  });
+  console.log({ test: resource.length });
+  const u = [];
+  for (let i = 0; i < resource.length; i++) {
+    resource[i].dispensed = [];
+    await resource[i].save();
+    u.push(resource[i]);
+  }
+
+  res.send({ cleaned: u.length });
+});
 router.post("/upload/dispensed/:store", async (req, res) => {
   // console.log({ body: req.body });
   const resources = await InventoryModel.find({

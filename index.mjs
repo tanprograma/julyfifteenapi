@@ -1,4 +1,5 @@
 import inventories from "./backend/routes/inventory.mjs";
+import orders from "./backend/routes/order.mjs";
 import suppliers from "./backend/routes/supplier.mjs";
 import stores from "./backend/routes/store.mjs";
 import clients from "./backend/routes/client.mjs";
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 app.use("/api/logs", logs);
 app.use("/api/inventories", inventories);
+app.use("/api/orders", orders);
 app.use("/api/suppliers", suppliers);
 app.use("/api/stores", stores);
 app.use("/api/clients", clients);
