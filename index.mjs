@@ -16,6 +16,8 @@ const connection = await dbConnect(DB_URI);
 const app = express();
 app.use((req, res, next) => {
   res.append("Access-Control-Allow-Origin", ["*"]);
+  res.append("Access-Control-Allow-Methods", ["PUT", "GET", "HEAD", "POST", "DELETE", "OPTIONS"]);
+  
   next();
 });
 app.use(express.json({ limit: "50mb" }));
