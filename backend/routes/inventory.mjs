@@ -133,6 +133,29 @@ router.post("/issue/:store", async (req, res) => {
 
   res.send(results);
 });
+router.post("/receive/:store", async (req, res) => {
+  const inventories = await InventoryModel.find({ outlet: req.params.store });
+
+  const results = [];
+
+  for (let i = 0; i < req.body.length; i++) {
+    const inventory = inventories.find((x) => {
+      return x.commodity == req.body[i].commodity;
+    });
+
+    const isInventory = validate(inventory);
+    if (isInventory) {
+      inventory.received.splice(0, 0, req.body[i].payload);
+      await inventory.save();
+      results.push(inventory);
+      await LogModel.create({
+        log: `create log inventories:added to received ${inventory.commodity}`,
+      });
+    }
+  }
+
+  res.send(results);
+});
 
 router.post("/beggining/update", async (req, res) => {
   const store = await InventoryModel.findOne({

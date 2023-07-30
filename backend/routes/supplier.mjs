@@ -12,9 +12,18 @@ router.get("/", async (req, res) => {
   res.send(resource);
 });
 router.post("/create", async (req, res) => {
+  if (req.body.length) {
+    const resources = await SupplierModel.create(req.body);
+    await LogModel.create({
+      log: `create log suppliers:added ${resources.length} suppliers`,
+    });
+
+    res.send(resources);
+    return;
+  }
   const resource = await SupplierModel.create(req.body);
   await LogModel.create({
-    log: `create log suppliers:added client ${resource.name}`,
+    log: `create log suppliers:added supplier ${resource.name}`,
   });
 
   res.send(resource);
