@@ -243,6 +243,17 @@ router.post("/beginnings/update/:store", async (req, res) => {
 
   res.send(results);
 });
+router.post("/fix/:store", async () => {
+  const items = await InventoryModel.find({ outlet: req.params.store });
+  const results = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    item.dispensed = [];
+    await item.save();
+    results.push(item);
+  }
+  res.send(results);
+});
 router.post("/delete/:store/:date", async (req, res) => {
   const items = await InventoryModel.find({ outlet: req.params.store });
   const start_date = Number(req.params.date);
