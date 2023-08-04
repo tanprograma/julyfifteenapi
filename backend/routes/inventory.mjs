@@ -243,7 +243,7 @@ router.post("/beginnings/update/:store", async (req, res) => {
 
   res.send(results);
 });
-router.post("/fix/:store", async () => {
+router.get("/fix/:store", async () => {
   const items = await InventoryModel.find({ outlet: req.params.store });
   const results = [];
   for (let i = 0; i < items.length; i++) {
