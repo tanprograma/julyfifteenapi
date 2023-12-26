@@ -10,19 +10,28 @@ import { dbConnect } from "./backend/db.mjs";
 import * as dotenv from "dotenv";
 dotenv.config();
 import express from "express";
-const DB_URI = process.env.DB_URI;
+const DB_URI = process.env.DB_URI || "";
 
 const connection = await dbConnect(DB_URI);
 const app = express();
 app.use((req, res, next) => {
   res.append("Access-Control-Allow-Origin", ["*"]);
   res.append("Access-Control-Allow-Headers", ["*"]);
-  res.append("Access-Control-Allow-Methods", ["PUT", "GET", "HEAD", "POST", "DELETE", "OPTIONS"]);
-  
+  res.append("Access-Control-Allow-Methods", [
+    "PUT",
+    "GET",
+    "HEAD",
+    "POST",
+    "DELETE",
+    "OPTIONS",
+  ]);
+
   next();
 });
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.static("public"));
 
 app.use("/api/logs", logs);
 app.use("/api/inventories", inventories);
