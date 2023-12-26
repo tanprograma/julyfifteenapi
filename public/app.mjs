@@ -80,7 +80,7 @@ function setZindex(n) {
 }
 async function getStock(store) {
   console.log("starting the process");
-  const res = await fetch(`${url}/api/beginnings/refill/${store}`);
+  const res = await fetch(`${url}/api/inventories/beginnings/refill/${store}`);
   console.log("returning data");
   const data = await res.json();
   return data;
