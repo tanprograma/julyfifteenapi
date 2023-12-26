@@ -80,7 +80,9 @@ router.post("/dispense/:store", async (req, res) => {
 
     const isInventory = validate(inventory);
     if (isInventory) {
-      inventory.dispensed.splice(0, 0, req.body[i].payload);
+      const item = req.body[i].payload;
+      inventory.dispensed.splice(0, 0, item);
+      inventory.stock -= item.quantity;
       await inventory.save();
       results.push(inventory);
       await LogModel.create({
@@ -105,7 +107,9 @@ router.post("/issue/:store", async (req, res) => {
 
     const isInventory = validate(inventory);
     if (isInventory) {
-      inventory.issued.splice(0, 0, req.body[i].payload);
+      const item = req.body[i].payload;
+      inventory.issued.splice(0, 0, item);
+      inventory.stock -= item.quantity;
       await inventory.save();
       results.push(inventory);
       await LogModel.create({
@@ -122,7 +126,9 @@ router.post("/issue/:store", async (req, res) => {
 
     const isInventory = validate(recInventory);
     if (isInventory) {
-      recInventory.received.splice(0, 0, toReceive[i].payload);
+      const receivedItem = toReceive[i].payload;
+      recInventory.received.splice(0, 0, receivedItem);
+      recInventory.stock += receivedItem.quantity;
       await recInventory.save();
       recResults.push(recInventory);
       await LogModel.create({
@@ -145,7 +151,9 @@ router.post("/receive/:store", async (req, res) => {
 
     const isInventory = validate(inventory);
     if (isInventory) {
-      inventory.received.splice(0, 0, req.body[i].payload);
+      const receivedItem = req.body[i].payload;
+      inventory.received.splice(0, 0, receivedItem);
+      inventory.stock += receivedItem.quantity;
       await inventory.save();
       results.push(inventory);
       await LogModel.create({
@@ -234,6 +242,7 @@ router.post("/beginnings/update/:store", async (req, res) => {
       return;
     }
     doc.beginning = items[i].beginning;
+    doc.stock += items[i].beginning;
     await doc.save();
     await LogModel.create({
       log: `update log inventories:updated beginning for ${items[i].commodity} in store ${req.body.outlet}`,
@@ -242,6 +251,30 @@ router.post("/beginnings/update/:store", async (req, res) => {
   }
 
   res.send(results);
+});
+router.get("/beginnings/refill/:store", async (req, res) => {
+  const results = [];
+  const docs = await InventoryModel.find({
+    outlet: req.params.store,
+  });
+
+  for (let i = 0; i < docs.length; i++) {
+    const item = docs[i];
+    item.stock -= docs[i].dispensed.reduce((acc, curr) => {
+      return acc + curr.quantity;
+    }, 0);
+    const response = await item.save();
+    results.push(response);
+  }
+
+  res.send(results);
+});
+router.get("/stock/:store", async (req, res) => {
+  const docs = await InventoryModel.find({
+    outlet: req.params.store,
+  });
+
+  res.send(docs);
 });
 router.get("/fix/:store", async (req, res) => {
   const items = await InventoryModel.find({ outlet: req.params.store });

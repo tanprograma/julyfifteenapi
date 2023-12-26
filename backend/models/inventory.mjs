@@ -24,6 +24,12 @@ const schema = new mongoose.Schema({
       return 0;
     },
   },
+  stock: {
+    type: Number,
+    default: () => {
+      return 0;
+    },
+  },
   inventory_level: {
     type: Number,
     default: () => {
