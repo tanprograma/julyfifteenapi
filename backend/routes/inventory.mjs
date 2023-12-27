@@ -271,7 +271,7 @@ router.get("/beginnings/refill/:store", async (req, res) => {
 });
 router.get("/stock", async (req, res) => {
   const docs = await InventoryModel.find();
-  const res = Object.values(
+  const resp = Object.values(
     docs.reduce((acc, curr) => {
       if (acc[curr.commodity].commodity == curr.commodity) {
         acc[curr.commodity].stock += curr.stock;
@@ -287,13 +287,13 @@ router.get("/stock", async (req, res) => {
     }, {})
   );
 
-  res.send(res);
+  res.send(resp);
 });
 router.get("/stock/:store", async (req, res) => {
   const docs = await InventoryModel.find({
     outlet: req.params.store,
   });
-  const res = docs.map((curr) => {
+  const resp = docs.map((curr) => {
     return {
       commodity: curr.commodity,
       stock: curr.stock,
@@ -301,7 +301,7 @@ router.get("/stock/:store", async (req, res) => {
       unit_value: curr.unit_value,
     };
   });
-  res.send(res);
+  res.send(resp);
 });
 router.get("/fix/:store", async (req, res) => {
   const items = await InventoryModel.find({ outlet: req.params.store });
