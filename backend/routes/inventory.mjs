@@ -269,12 +269,39 @@ router.get("/beginnings/refill/:store", async (req, res) => {
 
   res.send(results);
 });
+router.get("/stock", async (req, res) => {
+  const docs = await InventoryModel.find();
+  const res = Object.values(
+    docs.reduce((acc, curr) => {
+      if (acc[curr.commodity].commodity == curr.commodity) {
+        acc[curr.commodity].stock += curr.stock;
+        return acc;
+      }
+      acc[curr.commodity] = {
+        commodity: curr.commodity,
+        stock: curr.stock,
+        unit: curr.unit,
+        unit_value: curr.unit_value,
+      };
+      return acc;
+    }, {})
+  );
+
+  res.send(res);
+});
 router.get("/stock/:store", async (req, res) => {
   const docs = await InventoryModel.find({
     outlet: req.params.store,
   });
-
-  res.send(docs);
+  const res = docs.map((curr) => {
+    return {
+      commodity: curr.commodity,
+      stock: curr.stock,
+      unit: curr.unit,
+      unit_value: curr.unit_value,
+    };
+  });
+  res.send(res);
 });
 router.get("/fix/:store", async (req, res) => {
   const items = await InventoryModel.find({ outlet: req.params.store });
