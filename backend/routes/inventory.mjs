@@ -271,9 +271,10 @@ router.get("/beginnings/refill/:store", async (req, res) => {
 });
 router.get("/stock", async (req, res) => {
   const docs = await InventoryModel.find();
+
   const resp = Object.values(
     docs.reduce((acc, curr) => {
-      if (acc[curr.commodity].commodity == curr.commodity) {
+      if (acc[curr.commodity]?.commodity == curr.commodity) {
         acc[curr.commodity].stock += curr.stock;
         return acc;
       }
@@ -286,7 +287,7 @@ router.get("/stock", async (req, res) => {
       return acc;
     }, {})
   );
-
+  console.log({ docs, resp });
   res.send(resp);
 });
 router.get("/stock/:store", async (req, res) => {
