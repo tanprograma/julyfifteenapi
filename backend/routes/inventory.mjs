@@ -12,6 +12,42 @@ router.get("/", async (req, res) => {
   });
   res.send(resource);
 });
+router.get("/stock", async (req, res) => {
+  const docs = await InventoryModel.find({ active: true });
+  const resp = Object.values(
+    docs.reduce((acc, curr) => {
+      if (acc[curr.commodity]?.commodity == curr.commodity) {
+        acc[curr.commodity].stock += curr.stock;
+        return acc;
+      }
+      acc[curr.commodity] = {
+        commodity: curr.commodity,
+        stock: curr.stock,
+        unit: curr.unit,
+        unit_value: curr.unit_value,
+      };
+      return acc;
+    }, {})
+  ).sort((a, b) => {
+    if (a.commodity > b.commodity) return 1;
+    if (a.commodity < b.commodity) return -1;
+    return 0;
+  });
+  console.log({ resp: resp.length });
+  res.send(resp);
+});
+router.get("/stock/:store", async (req, res) => {
+  const resource = await InventoryModel.find({
+    active: true,
+    outlet: req.params.store,
+  });
+  await LogModel.create({
+    log: `get log inventories:sent ${resource.length} records`,
+  });
+  console.log(resource.length);
+  res.send(resource);
+});
+
 router.get("/:store", async (req, res) => {
   console.log({ urlstore: req.params.store });
   const resource = await InventoryModel.find({
@@ -174,7 +210,7 @@ router.post("/beggining/update", async (req, res) => {
     res.status(404).send([]);
     return;
   }
-  store.beginning = req.body.beginning;
+  store.beginning += req.body.beginning;
   await store.save();
   await LogModel.create({
     log: `update log inventories:updated beggining for ${store.commodity} items`,
@@ -269,41 +305,7 @@ router.get("/beginnings/refill/:store", async (req, res) => {
 
   res.send(results);
 });
-router.get("/stock", async (req, res) => {
-  const docs = await InventoryModel.find();
 
-  const resp = Object.values(
-    docs.reduce((acc, curr) => {
-      if (acc[curr.commodity]?.commodity == curr.commodity) {
-        acc[curr.commodity].stock += curr.stock;
-        return acc;
-      }
-      acc[curr.commodity] = {
-        commodity: curr.commodity,
-        stock: curr.stock,
-        unit: curr.unit,
-        unit_value: curr.unit_value,
-      };
-      return acc;
-    }, {})
-  );
-  console.log({ docs, resp });
-  res.send(resp);
-});
-router.get("/stock/:store", async (req, res) => {
-  const docs = await InventoryModel.find({
-    outlet: req.params.store,
-  });
-  const resp = docs.map((curr) => {
-    return {
-      commodity: curr.commodity,
-      stock: curr.stock,
-      unit: curr.unit,
-      unit_value: curr.unit_value,
-    };
-  });
-  res.send(resp);
-});
 router.get("/fix/:store", async (req, res) => {
   const items = await InventoryModel.find({ outlet: req.params.store });
   const results = [];
@@ -326,6 +328,7 @@ router.get("/setwarehouse/:store", async (req, res) => {
   }
   res.send(results);
 });
+
 router.post("/delete/:store/:date", async (req, res) => {
   const items = await InventoryModel.find({ outlet: req.params.store });
   const start_date = Number(req.params.date);
