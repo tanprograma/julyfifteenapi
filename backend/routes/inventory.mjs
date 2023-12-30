@@ -277,7 +277,7 @@ router.post("/beginnings/update/:store", async (req, res) => {
       });
       return;
     }
-    doc.beginning = items[i].beginning;
+    doc.beginning += items[i].beginning;
     doc.stock += items[i].beginning;
     await doc.save();
     await LogModel.create({
