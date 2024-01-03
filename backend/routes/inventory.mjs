@@ -25,6 +25,7 @@ router.get("/stock", async (req, res) => {
         stock: curr.stock,
         unit: curr.unit,
         unit_value: curr.unit_value,
+        expiry: curr.expiry,
       };
       return acc;
     }, {})
@@ -33,7 +34,7 @@ router.get("/stock", async (req, res) => {
     if (a.commodity < b.commodity) return -1;
     return 0;
   });
-  console.log({ resp: resp.length });
+  console.log({ resp: resp });
   res.send(resp);
 });
 router.get("/stock/:store", async (req, res) => {
@@ -260,30 +261,129 @@ router.post("/inventories/update", async (req, res) => {
 
   res.send(results);
 });
+// router.post("/beginnings/update/:store", async (req, res) => {
+//   const results = [];
+//   const docs = await InventoryModel.find({
+//     outlet: req.params.store,
+//   });
+//   const items = req.body;
+//   for (let i = 0; i < items.length; i++) {
+//     const doc = docs.find((docitem) => {
+//       return docitem.commodity == items[i].commodity;
+//     });
+
+//     if (!doc) {
+//       await LogModel.create({
+//         log: `update log inventories:could not add beggining stock for commodity: ${items[i].commodity} in store ${req.body.outlet}`,
+//       });
+//       return;
+//     }
+//     doc.beginning += items[i].beginning;
+//     doc.stock += items[i].beginning;
+//     if (
+//       typeof doc.expiry == "undefined" &&
+//       typeof (items[i].expiry != "undefined")
+//     )
+//       doc.expiry = new Date(items[i].expiry);
+//     if (
+//       typeof doc.expiry != "undefined" &&
+//       typeof (items[i].expiry != "undefined")
+//     ) {
+//       doc.expiry =
+//         new Date(doc.expiry) - new Date(items[i].expiry) < 1
+//           ? new Date(items[i].expiry)
+//           : new Date(doc.expiry);
+//     }
+//     await doc.save();
+//     await LogModel.create({
+//       log: `update log inventories:updated beginning for ${items[i].commodity} in store ${req.body.outlet}`,
+//     });
+//     results.splice(0, 0, doc);
+//   }
+
+//   res.send(results);
+// });
 router.post("/beginnings/update/:store", async (req, res) => {
   const results = [];
-  const docs = await InventoryModel.find({
-    outlet: req.params.store,
-  });
+  const docs = await InventoryModel.find({});
   const items = req.body;
   for (let i = 0; i < items.length; i++) {
-    const doc = docs.find((docitem) => {
-      return docitem.commodity == items[i].commodity;
-    });
-
-    if (!doc) {
-      await LogModel.create({
-        log: `update log inventories:could not add beggining stock for commodity: ${items[i].commodity} in store ${req.body.outlet}`,
+    const itemsofConcern = docs
+      .filter((searchItem) => {
+        return searchItem.commodity == items[i].commodity;
+      })
+      .map((x) => {
+        if (x.outlet == req.params.store) {
+          x.beginning += items[i].beginning;
+          x.stock += items[i].beginning;
+        }
+        if (
+          typeof items[i].expiry != "undefined" &&
+          typeof x.expiry != "undefined"
+        ) {
+          x.expiry =
+            new Date(items[i].expiry) - new Date(x.expiry) > 1
+              ? new Date(items[i].expiry)
+              : x.expiry;
+        }
+        if (
+          typeof items[i].expiry != "undefined" &&
+          typeof x.expiry == "undefined"
+        ) {
+          x.expiry = new Date(items[i].expiry);
+        }
+        return x;
       });
-      return;
+
+    for (let q = 0; q < itemsofConcern.length; q++) {
+      const a = await itemsofConcern[q].save();
+      if (a.outlet == itemsofConcern[q].outlet) {
+        results.splice(0, 0, a);
+      }
     }
-    doc.beginning += items[i].beginning;
-    doc.stock += items[i].beginning;
-    await doc.save();
-    await LogModel.create({
-      log: `update log inventories:updated beginning for ${items[i].commodity} in store ${req.body.outlet}`,
-    });
-    results.splice(0, 0, doc);
+  }
+
+  res.send(results);
+});
+router.post("/expiry/update", async (req, res) => {
+  const results = [];
+  const docs = await InventoryModel.find();
+  const items = req.body;
+  for (let i = 0; i < items.length; i++) {
+    const itemsofConcern = docs
+      .filter((searchItem) => {
+        return searchItem.commodity == items[i].commodity;
+      })
+      .map((x) => {
+        // if (x.outlet == req.params.store) {
+        //   x.beginning += items[i].beginning;
+        //   x.stock += items[i].beginning;
+        // }
+        if (
+          typeof items[i].expiry != "undefined" &&
+          typeof x.expiry != "undefined"
+        ) {
+          x.expiry =
+            new Date(items[i].expiry) - new Date(x.expiry) > 1
+              ? new Date(items[i].expiry)
+              : x.expiry;
+        }
+        if (
+          typeof items[i].expiry != "undefined" &&
+          typeof x.expiry == "undefined"
+        ) {
+          x.expiry = new Date(items[i].expiry);
+        }
+        return x;
+      });
+
+    for (let q = 0; q < itemsofConcern.length; q++) {
+      const a = await itemsofConcern[q].save();
+      // if (a.outlet == itemsofConcern[q].outlet) {
+      //   results.splice(0, 0, a);
+      // }
+      results.splice(0, 0, a);
+    }
   }
 
   res.send(results);

@@ -101,6 +101,7 @@ const schema = new mongoose.Schema({
   ],
   unit: String,
   unit_value: Number,
+  expiry: { type: Date },
 });
 
 const InventoryModel = mongoose.model("Inventories", schema);
