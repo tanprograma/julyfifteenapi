@@ -317,20 +317,17 @@ router.post("/beginnings/update/:store", async (req, res) => {
           x.beginning += items[i].beginning;
           x.stock += items[i].beginning;
         }
-        if (
-          typeof items[i].expiry != "undefined" &&
-          typeof x.expiry != "undefined"
-        ) {
+        if (items[i].expiry != undefined && x.expiry != undefined) {
           x.expiry =
             new Date(items[i].expiry) - new Date(x.expiry) > 1
-              ? new Date(items[i].expiry)
-              : x.expiry;
+              ? new Date(items[i].expiry).getTime()
+              : new Date(x.expiry).getTime();
         }
         if (
-          typeof items[i].expiry != "undefined" &&
-          typeof x.expiry == "undefined"
+          typeof items[i].expiry != undefined &&
+          typeof x.expiry == undefined
         ) {
-          x.expiry = new Date(items[i].expiry).toLocaleDateString();
+          x.expiry = new Date(items[i].expiry).getTime();
         }
         return x;
       });
@@ -359,20 +356,14 @@ router.post("/expiry/update", async (req, res) => {
         //   x.beginning += items[i].beginning;
         //   x.stock += items[i].beginning;
         // }
-        if (
-          typeof items[i].expiry != "undefined" &&
-          typeof x.expiry != "undefined"
-        ) {
+        if (items[i].expiry != undefined && x.expiry != undefined) {
           x.expiry =
             new Date(items[i].expiry) - new Date(x.expiry) > 1
-              ? new Date(items[i].expiry)
-              : x.expiry;
+              ? new Date(items[i].expiry).getTime()
+              : new Date(x.expiry).getTime();
         }
-        if (
-          typeof items[i].expiry != "undefined" &&
-          typeof x.expiry == "undefined"
-        ) {
-          x.expiry = new Date(items[i].expiry).toLocaleDateString();
+        if (items[i].expiry != undefined && x.expiry == undefined) {
+          x.expiry = new Date(items[i].expiry).getTime();
         }
         return x;
       });
