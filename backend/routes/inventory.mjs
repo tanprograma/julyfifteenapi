@@ -330,7 +330,7 @@ router.post("/beginnings/update/:store", async (req, res) => {
           typeof items[i].expiry != "undefined" &&
           typeof x.expiry == "undefined"
         ) {
-          x.expiry = new Date(items[i].expiry);
+          x.expiry = new Date(items[i].expiry).toLocaleDateString();
         }
         return x;
       });
@@ -372,7 +372,7 @@ router.post("/expiry/update", async (req, res) => {
           typeof items[i].expiry != "undefined" &&
           typeof x.expiry == "undefined"
         ) {
-          x.expiry = new Date(items[i].expiry);
+          x.expiry = new Date(items[i].expiry).toLocaleDateString();
         }
         return x;
       });
