@@ -305,27 +305,32 @@ router.post("/inventories/update", async (req, res) => {
 // });
 router.post("/beginnings/update/:store", async (req, res) => {
   const results = [];
-  const docs = await InventoryModel.find();
+  const docs = await InventoryModel.find({ outlet: req.params.store });
   const items = req.body;
   for (let i = 0; i < items.length; i++) {
-    const itemsofConcern = docs
-      .filter((searchItem) => {
-        return searchItem.commodity == items[i].commodity;
-      })
-      .map((x) => {
-        if (x.outlet == req.params.store) {
-          x.beginning += items[i].beginning;
-          x.stock += items[i].beginning;
-        }
-        return setDate(x, items[i].expiry);
-      });
-
-    for (let q = 0; q < itemsofConcern.length; q++) {
-      const a = await itemsofConcern[q].save();
-      if (a.outlet == itemsofConcern[q].outlet) {
-        results.splice(0, 0, a);
-      }
+    const dbItem = docs.find((x) => {
+      return x.commodity == items[i].commodity;
+    });
+    if (!dbItem) return;
+    dbItem.beginning += items[i].beginning;
+    dbItem.stock += items[i].beginning;
+    if (!items[i].expiry) {
+      const saved = await dbItem.save();
+      results.push(saved);
+      return;
     }
+    if (!dbItem.expiry) {
+      dbItem.expiry = new Date(items[i].expiry);
+      const saved = await dbItem.save();
+      results.push(saved);
+      return;
+    }
+    const old = new Date(dbItem.expiry);
+    const newDate = new Date(items[i].expiry);
+    dbItem.expiry = old.getTime() - newDate.getTime() > 1 ? old : newDate;
+    const saved = await dbItem.save();
+    results.push(saved);
+    return;
   }
 
   res.send(results);
@@ -335,22 +340,28 @@ router.post("/expiry/update", async (req, res) => {
   const docs = await InventoryModel.find();
   const items = req.body;
   for (let i = 0; i < items.length; i++) {
-    const expiry = items[i].expiry;
-    const itemsofConcern = docs
-      .filter((searchItem) => {
-        return searchItem.commodity == items[i].commodity;
-      })
-      .map((x) => {
-        return setDate(x, expiry);
-      });
+    const dbItem = docs.find((x) => {
+      return x.commodity == items[i].commodity;
+    });
+    if (!dbItem) return;
 
-    for (let q = 0; q < itemsofConcern.length; q++) {
-      const a = await itemsofConcern[q].save();
-      // if (a.outlet == itemsofConcern[q].outlet) {
-      //   results.splice(0, 0, a);
-      // }
-      results.splice(0, 0, a);
+    if (!items[i].expiry) {
+      const saved = await dbItem.save();
+      results.push(saved);
+      return;
     }
+    if (!dbItem.expiry) {
+      dbItem.expiry = new Date(items[i].expiry);
+      const saved = await dbItem.save();
+      results.push(saved);
+      return;
+    }
+    const old = new Date(dbItem.expiry);
+    const newDate = new Date(items[i].expiry);
+    dbItem.expiry = old.getTime() - newDate.getTime() > 1 ? old : newDate;
+    const saved = await dbItem.save();
+    results.push(saved);
+    return;
   }
 
   res.send(results);
@@ -463,14 +474,23 @@ export default router;
 
 // setting new Date
 function setDate(x, expiry) {
-  if (expiry != undefined && x.expiry != undefined) {
-    x.expiry =
-      new Date(expiry) - new Date(x.expiry) > 1
-        ? new Date(expiry)
-        : new Date(x.expiry);
-  }
-  if (expiry != undefined && x.expiry == undefined) {
+  if (!expiry)
+    throw new Error(`expiry date wan not supplied {expiry: ${expiry}}`);
+  if (!x.expiry) {
     x.expiry = new Date(expiry);
+    return x;
   }
+  const serverDate = new date(x.expiry);
+  const reqDate = new date(expiry);
+  x.expiry =
+    reqDate.getTime() - serverDate.getTime() > 1 ? reqDate : serverDate;
   return x;
+}
+async function updateDates(items, date) {
+  if (!expiry)
+    throw new Error(`expiry date wan not supplied {expiry: ${expiry}}`);
+  for (let i = 0; i < items.length; i++) {
+    const x = setDate(items[i], date);
+    await x.save();
+  }
 }
