@@ -305,7 +305,7 @@ router.post("/inventories/update", async (req, res) => {
 // });
 router.post("/beginnings/update/:store", async (req, res) => {
   const results = [];
-  const docs = await InventoryModel.find({});
+  const docs = await InventoryModel.find();
   const items = req.body;
   for (let i = 0; i < items.length; i++) {
     const itemsofConcern = docs
@@ -317,19 +317,7 @@ router.post("/beginnings/update/:store", async (req, res) => {
           x.beginning += items[i].beginning;
           x.stock += items[i].beginning;
         }
-        if (items[i].expiry != undefined && x.expiry != undefined) {
-          x.expiry =
-            new Date(items[i].expiry) - new Date(x.expiry) > 1
-              ? new Date(items[i].expiry).getTime()
-              : new Date(x.expiry).getTime();
-        }
-        if (
-          typeof items[i].expiry != undefined &&
-          typeof x.expiry == undefined
-        ) {
-          x.expiry = new Date(items[i].expiry).getTime();
-        }
-        return x;
+        return setDate(x, items[i].expiry);
       });
 
     for (let q = 0; q < itemsofConcern.length; q++) {
@@ -347,25 +335,13 @@ router.post("/expiry/update", async (req, res) => {
   const docs = await InventoryModel.find();
   const items = req.body;
   for (let i = 0; i < items.length; i++) {
+    const expiry = items[i].expiry;
     const itemsofConcern = docs
       .filter((searchItem) => {
         return searchItem.commodity == items[i].commodity;
       })
       .map((x) => {
-        // if (x.outlet == req.params.store) {
-        //   x.beginning += items[i].beginning;
-        //   x.stock += items[i].beginning;
-        // }
-        if (items[i].expiry != undefined && x.expiry != undefined) {
-          x.expiry =
-            new Date(items[i].expiry) - new Date(x.expiry) > 1
-              ? new Date(items[i].expiry).getTime()
-              : new Date(x.expiry).getTime();
-        }
-        if (items[i].expiry != undefined && x.expiry == undefined) {
-          x.expiry = new Date(items[i].expiry).getTime();
-        }
-        return x;
+        return setDate(x, expiry);
       });
 
     for (let q = 0; q < itemsofConcern.length; q++) {
@@ -484,3 +460,17 @@ function findIssued(results, posted) {
 }
 
 export default router;
+
+// setting new Date
+function setDate(x, expiry) {
+  if (expiry != undefined && x.expiry != undefined) {
+    x.expiry =
+      new Date(expiry) - new Date(x.expiry) > 1
+        ? new Date(expiry)
+        : new Date(x.expiry);
+  }
+  if (expiry != undefined && x.expiry == undefined) {
+    x.expiry = new Date(expiry);
+  }
+  return x;
+}
