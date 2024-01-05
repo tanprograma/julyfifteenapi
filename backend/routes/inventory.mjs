@@ -261,109 +261,21 @@ router.post("/inventories/update", async (req, res) => {
 
   res.send(results);
 });
-// router.post("/beginnings/update/:store", async (req, res) => {
-//   const results = [];
-//   const docs = await InventoryModel.find({
-//     outlet: req.params.store,
-//   });
-//   const items = req.body;
-//   for (let i = 0; i < items.length; i++) {
-//     const doc = docs.find((docitem) => {
-//       return docitem.commodity == items[i].commodity;
-//     });
 
-//     if (!doc) {
-//       await LogModel.create({
-//         log: `update log inventories:could not add beggining stock for commodity: ${items[i].commodity} in store ${req.body.outlet}`,
-//       });
-//       return;
-//     }
-//     doc.beginning += items[i].beginning;
-//     doc.stock += items[i].beginning;
-//     if (
-//       typeof doc.expiry == "undefined" &&
-//       typeof (items[i].expiry != "undefined")
-//     )
-//       doc.expiry = new Date(items[i].expiry);
-//     if (
-//       typeof doc.expiry != "undefined" &&
-//       typeof (items[i].expiry != "undefined")
-//     ) {
-//       doc.expiry =
-//         new Date(doc.expiry) - new Date(items[i].expiry) < 1
-//           ? new Date(items[i].expiry)
-//           : new Date(doc.expiry);
-//     }
-//     await doc.save();
-//     await LogModel.create({
-//       log: `update log inventories:updated beginning for ${items[i].commodity} in store ${req.body.outlet}`,
-//     });
-//     results.splice(0, 0, doc);
-//   }
-
-//   res.send(results);
-// });
 router.post("/beginnings/update/:store", async (req, res) => {
-  const results = [];
-  const docs = await InventoryModel.find({ outlet: req.params.store });
-  const items = req.body;
-  for (let i = 0; i < items.length; i++) {
-    const dbItem = docs.find((x) => {
-      return x.commodity == items[i].commodity;
-    });
-    if (!dbItem) return;
-    dbItem.beginning += items[i].beginning;
-    dbItem.stock += items[i].beginning;
-    if (!items[i].expiry) {
-      const saved = await dbItem.save();
-      results.push(saved);
-      return;
-    }
-    if (!dbItem.expiry) {
-      dbItem.expiry = new Date(items[i].expiry);
-      const saved = await dbItem.save();
-      results.push(saved);
-      return;
-    }
-    const old = new Date(dbItem.expiry);
-    const newDate = new Date(items[i].expiry);
-    dbItem.expiry = old.getTime() - newDate.getTime() > 1 ? old : newDate;
-    const saved = await dbItem.save();
-    results.push(saved);
-    return;
-  }
-
+  const results = await updateBeginning(req, InventoryModel);
+  console.log({
+    items: req.body,
+    results,
+  });
   res.send(results);
 });
 router.post("/expiry/update", async (req, res) => {
-  const results = [];
-  const docs = await InventoryModel.find();
-  const items = req.body;
-  for (let i = 0; i < items.length; i++) {
-    const dbItem = docs.find((x) => {
-      return x.commodity == items[i].commodity;
-    });
-    if (!dbItem) return;
-
-    if (!items[i].expiry) {
-      const saved = await dbItem.save();
-      results.push(saved);
-      return;
-    }
-    if (!dbItem.expiry) {
-      dbItem.expiry = new Date(items[i].expiry);
-      const saved = await dbItem.save();
-      results.push(saved);
-      return;
-    }
-    const old = new Date(dbItem.expiry);
-    const newDate = new Date(items[i].expiry);
-    dbItem.expiry = old.getTime() - newDate.getTime() > 1 ? old : newDate;
-    const saved = await dbItem.save();
-    results.push(saved);
-    return;
-  }
-
+  const results = await updateExpirely(req, InventoryModel);
+  console.log({
+    items: req.body,
+    results,
+  });
   res.send(results);
 });
 router.get("/beginnings/refill/:store", async (req, res) => {
@@ -474,14 +386,12 @@ export default router;
 
 // setting new Date
 function setDate(x, expiry) {
-  if (!expiry)
-    throw new Error(`expiry date wan not supplied {expiry: ${expiry}}`);
   if (!x.expiry) {
     x.expiry = new Date(expiry);
     return x;
   }
-  const serverDate = new date(x.expiry);
-  const reqDate = new date(expiry);
+  const serverDate = new Date(x.expiry);
+  const reqDate = new Date(expiry);
   x.expiry =
     reqDate.getTime() - serverDate.getTime() > 1 ? reqDate : serverDate;
   return x;
@@ -493,4 +403,52 @@ async function updateDates(items, date) {
     const x = setDate(items[i], date);
     await x.save();
   }
+}
+//
+async function updateBeginning(req, model) {
+  const results = [];
+  const docs = await model.find();
+  const items = req.body;
+  const outlet = req.params.store;
+  for (let i = 0; i < items.length; i++) {
+    const mappedItems = docs
+      .filter((x) => {
+        return x.commodity == items[i].commodity;
+      })
+      .map((z) => {
+        if (z.outlet == outlet) {
+          z.beginning += items[i].beginning;
+          z.stock += items[i].beginning;
+        }
+
+        return setDate(z, items[i].expiry);
+      });
+    for (let q = 0; q < mappedItems.length; q++) {
+      const answer = await mappedItems[q].save();
+      if (answer.outlet == outlet) {
+        results.push(answer);
+      }
+    }
+  }
+  return results;
+}
+async function updateExpirely(req, model) {
+  const results = [];
+  const docs = await model.find();
+  const items = req.body;
+  for (let i = 0; i < items.length; i++) {
+    const mappedItems = docs
+      .filter((x) => {
+        return x.commodity == items[i].commodity;
+      })
+      .map((z) => {
+        return setDate(z, items[i].expiry);
+      });
+    for (let q = 0; q < mappedItems.length; q++) {
+      const answer = await mappedItems[q].save();
+    }
+    results.push(items[i]);
+  }
+
+  return results;
 }
