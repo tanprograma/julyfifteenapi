@@ -11,8 +11,16 @@ router.get("/", async (req, res) => {
   });
   res.send(resource);
 });
+router.get("/orderid/:id", async (req, res) => {
+  const resource = await OrderModel.findOne({ _id: req.params.id });
+  await LogModel.create({
+    log: `get log orders:sent ${resource.length} records`,
+  });
+  res.send(resource);
+});
 router.post("/create", async (req, res) => {
   const resource = await OrderModel.create(req.body);
+  console.log(resource);
   await LogModel.create({
     log: `create log orders:added order ${resource._id}`,
   });

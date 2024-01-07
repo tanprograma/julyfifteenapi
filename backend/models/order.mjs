@@ -1,13 +1,14 @@
 import mongoose from "mongoose";
 const schema = new mongoose.Schema({
-  create_date: {
+  title: String,
+  created_date: {
     type: Date,
     default: () => {
       return Date.now();
     },
     immutable: true,
   },
-  last_updated: {
+  updated_date: {
     type: Date,
     default: () => {
       return Date.now();

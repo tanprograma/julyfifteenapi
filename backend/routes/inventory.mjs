@@ -266,7 +266,6 @@ router.post("/beginnings/update/:store", async (req, res) => {
   const results = await updateBeginning(req, InventoryModel);
   console.log({
     items: req.body,
-    results,
   });
   res.send(results);
 });
@@ -385,25 +384,7 @@ function findIssued(results, posted) {
 export default router;
 
 // setting new Date
-function setDate(x, expiry) {
-  if (!x.expiry) {
-    x.expiry = new Date(expiry);
-    return x;
-  }
-  const serverDate = new Date(x.expiry);
-  const reqDate = new Date(expiry);
-  x.expiry =
-    reqDate.getTime() - serverDate.getTime() > 1 ? reqDate : serverDate;
-  return x;
-}
-async function updateDates(items, date) {
-  if (!expiry)
-    throw new Error(`expiry date wan not supplied {expiry: ${expiry}}`);
-  for (let i = 0; i < items.length; i++) {
-    const x = setDate(items[i], date);
-    await x.save();
-  }
-}
+
 //
 async function updateBeginning(req, model) {
   const results = [];
@@ -420,8 +401,11 @@ async function updateBeginning(req, model) {
           z.beginning += items[i].beginning;
           z.stock += items[i].beginning;
         }
-
-        return setDate(z, items[i].expiry);
+        if (items[i].expiry != undefined) {
+          z.expiry = new Date(items[i].expiry).toISOString();
+          return z;
+        }
+        return z;
       });
     for (let q = 0; q < mappedItems.length; q++) {
       const answer = await mappedItems[q].save();
@@ -442,7 +426,17 @@ async function updateExpirely(req, model) {
         return x.commodity == items[i].commodity;
       })
       .map((z) => {
-        return setDate(z, items[i].expiry);
+        if (
+          items[i].expiry == undefined ||
+          (z.expiry == undefined && items[i].expiry == undefined)
+        ) {
+          return z;
+        }
+        if (items[i].expiry != undefined) {
+          z.expiry = new Date(items[i].expiry).toISOString();
+          return z;
+        }
+        return z;
       });
     for (let q = 0; q < mappedItems.length; q++) {
       const answer = await mappedItems[q].save();
