@@ -119,7 +119,7 @@ router.post("/dispense/:store", async (req, res) => {
 
     const isInventory = validate(inventory);
     if (isInventory) {
-      if (date != undefined) {
+      if (date == undefined) {
         inventory.dispensed.splice(0, 0, { quantity, client });
       } else {
         inventory.dispensed.splice(0, 0, { quantity, date, client });
