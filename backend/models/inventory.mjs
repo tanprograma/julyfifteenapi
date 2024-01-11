@@ -48,12 +48,8 @@ const schema = new mongoose.Schema({
       client: {
         type: String,
         uppercase: true,
-        client: {
-          type: String,
-          uppercase: true,
-          default: () => {
-            return "CLINIC";
-          },
+        default: () => {
+          return "CLINIC";
         },
       },
     },
@@ -71,12 +67,8 @@ const schema = new mongoose.Schema({
       client: {
         type: String,
         uppercase: true,
-        client: {
-          type: String,
-          uppercase: true,
-          default: () => {
-            return "CLINIC";
-          },
+        default: () => {
+          return "CLINIC";
         },
       },
     },

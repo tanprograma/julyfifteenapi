@@ -110,20 +110,26 @@ router.post("/create", async (req, res) => {
 router.post("/dispense/:store", async (req, res) => {
   const inventories = await InventoryModel.find({ outlet: req.params.store });
   const results = [];
+  console.log(req.body);
   for (let i = 0; i < req.body.length; i++) {
+    const { commodity, quantity, date, client } = { ...req.body[i] };
     const inventory = inventories.find((x) => {
-      return x.commodity == req.body[i].commodity;
+      return x.commodity == commodity;
     });
 
     const isInventory = validate(inventory);
     if (isInventory) {
-      const item = req.body[i].payload;
-      inventory.dispensed.splice(0, 0, item);
-      inventory.stock -= item.quantity;
+      if (date != undefined) {
+        inventory.dispensed.splice(0, 0, { quantity, client });
+      } else {
+        inventory.dispensed.splice(0, 0, { quantity, date, client });
+      }
+
+      inventory.stock -= quantity;
       await inventory.save();
       results.push(inventory);
       await LogModel.create({
-        log: `create log inventories:added to inventory ${inventory.commodity}`,
+        log: `create log inventories:added to inventory ${commodity}`,
       });
     }
   }
