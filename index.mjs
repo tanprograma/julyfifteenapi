@@ -6,6 +6,7 @@ import clients from "./backend/routes/client.mjs";
 import units from "./backend/routes/unit.mjs";
 import medicines from "./backend/routes/medicine.mjs";
 import logs from "./backend/routes/logs.mjs";
+import users from "./backend/routes/user.mjs";
 import { dbConnect } from "./backend/db.mjs";
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -41,6 +42,7 @@ app.use("/api/stores", stores);
 app.use("/api/clients", clients);
 app.use("/api/units", units);
 app.use("/api/medicines", medicines);
+app.use("/api/users", users);
 
 const PORT = process.env.PORT || 5000;
 app.get("/", (req, res) => {

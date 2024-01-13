@@ -10,7 +10,12 @@ router.get("/", async (req, res) => {
   await LogModel.create({
     log: `get log inventories:sent ${resource.length} records`,
   });
-  res.send(resource);
+  const sorted = resource.sort((a, b) => {
+    if (a.commodity > b.commodity) return 1;
+    if (a.commodity < b.commodity) return -1;
+    return 0;
+  });
+  res.send(sorted);
 });
 router.get("/stock", async (req, res) => {
   const docs = await InventoryModel.find({ active: true });
@@ -45,8 +50,13 @@ router.get("/stock/:store", async (req, res) => {
   await LogModel.create({
     log: `get log inventories:sent ${resource.length} records`,
   });
-  console.log(resource.length);
-  res.send(resource);
+
+  const sorted = resource.sort((a, b) => {
+    if (a.commodity > b.commodity) return 1;
+    if (a.commodity < b.commodity) return -1;
+    return 0;
+  });
+  res.send(sorted);
 });
 
 router.get("/:store", async (req, res) => {
@@ -58,8 +68,12 @@ router.get("/:store", async (req, res) => {
   await LogModel.create({
     log: `get log inventories:sent ${resource.length} records`,
   });
-  console.log({ test: resource.length });
-  res.send(resource);
+  const sorted = resource.sort((a, b) => {
+    if (a.commodity > b.commodity) return 1;
+    if (a.commodity < b.commodity) return -1;
+    return 0;
+  });
+  res.send(sorted);
 });
 router.get("/clean/dispensed/:store", async (req, res) => {
   // console.log({ urlstore: req.params.store });

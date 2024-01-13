@@ -7,10 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm i",
     "start": "nodemon index.mjs",
-    "dev": "nodemon index.mjs" 
+    "dev": "nodemon index.mjs"
   },
   "dependencies": {
-    "bcrypt": "^5.1.0",
+    "bcrypt": "^5.1.1",
     "config": "^3.3.9",
     "cookie-parser": "^1.4.6",
     "debug": "^4.3.4",
