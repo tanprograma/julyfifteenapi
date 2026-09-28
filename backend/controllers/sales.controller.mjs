@@ -3,11 +3,16 @@ export async function saleStatus(req, res) {
 	const data = await InventoryModel.find().select("dispensed").lean();
 	const reduced = data.reduce((cum, current) => {
 		cum.push(...current.dispensed);
+		return cum;
 	}, []);
-	const last = await reduced.sort((a, b) => b.date - a.date);
-	const first = await reduced.sort((a, b) => a.date - b.date);
+	const last = reduced.sort((a, b) => b.date - a.date);
+	const first = reduced.sort((a, b) => a.date - b.date);
 	const count = reduced.length;
-	res.send({ start: first[0].createdAt, end: last[0].createdAt, count });
+	res.send({
+		start: !!first ? new Date(first.date) : "",
+		end: !!last ? new Date(last.date) : "",
+		count,
+	});
 }
 export async function harmonizeSales(req, res) {
 	try {
