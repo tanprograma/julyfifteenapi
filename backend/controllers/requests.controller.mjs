@@ -1,15 +1,15 @@
 import { InventoryModel } from "../models/inventory.mjs";
-export async function saleStatus(req, res) {
-	const data = await InventoryModel.find().select("dispensed").lean();
+export async function requestStatus(req, res) {
+	const data = await InventoryModel.find().select("received").lean();
 	const reduced = data.reduce((cum, current) => {
-		cum.push(...current.dispensed);
+		cum.push(...current.received);
 	}, []);
 	const last = await reduced.sort((a, b) => b.date - a.date);
 	const first = await reduced.sort((a, b) => a.date - b.date);
 	const count = reduced.length;
 	res.send({ start: first[0].createdAt, end: last[0].createdAt, count });
 }
-export async function harmonizeSales(req, res) {
+export async function harmonizeRequests(req, res) {
 	try {
 		// creates date filter
 		const { startDate, endDate } = req.query;
@@ -30,7 +30,7 @@ export async function harmonizeSales(req, res) {
 
 		// query db
 		const sales = await InventoryModel.find({})
-			.select("dispensed commodity outlet")
+			.select("received commodity outlet")
 			.lean();
 
 		const data = saleReducer(sales, dateFilter);
@@ -39,7 +39,7 @@ export async function harmonizeSales(req, res) {
 		res.send([]);
 	}
 }
-export async function harmonizeSalesCompressed(req, res) {
+export async function harmonizeRequestsCompressed(req, res) {
 	try {
 		// creates date filter
 		const { startDate, endDate } = req.query;
@@ -60,7 +60,7 @@ export async function harmonizeSalesCompressed(req, res) {
 
 		// query db
 		const sales = await InventoryModel.find({})
-			.select("dispensed commodity outlet")
+			.select("received commodity outlet")
 			.lean();
 
 		const data = saleReducerCompressed(sales, products);
@@ -69,7 +69,7 @@ export async function harmonizeSalesCompressed(req, res) {
 		res.send([]);
 	}
 }
-export async function harmonizeSalesDaily(req, res) {
+export async function harmonizeRequestsDaily(req, res) {
 	try {
 		// creates date filter
 		const { startDate, endDate } = req.query;
@@ -90,7 +90,7 @@ export async function harmonizeSalesDaily(req, res) {
 
 		// query db
 		const sales = await InventoryModel.find({})
-			.select("dispensed commodity outlet")
+			.select("received commodity outlet")
 			.lean();
 
 		const data = saleReducerDaily(sales, dateFilter);
@@ -103,7 +103,7 @@ export function saleReducer(sales, filter) {
 	// deconstruct all sales
 	const data = sales.reduce((cumm, current) => {
 		cumm.push(
-			...current.dispensed
+			...current.received
 				.filter((item) => {
 					return compareDate(item, filter);
 				})
@@ -123,7 +123,7 @@ export function saleReducer(sales, filter) {
 
 export function saleReducerCompressed(sales, filter) {
 	const data = sales.reduce((cumm, current) => {
-		const quantity = current.dispensed.reduce((total, item) => {
+		const quantity = current.received.reduce((total, item) => {
 			return compareDate(item, filter) ? total + item.quantity : total;
 		}, 0);
 
@@ -147,7 +147,7 @@ export function saleReducerCompressed(sales, filter) {
 }
 export function saleReducerDaily(sales, filter) {
 	const data = sales.reduce((cumm, current) => {
-		current.dispensed
+		current.received
 			.filter((item) => {
 				return compareDate(item, filter);
 			})
