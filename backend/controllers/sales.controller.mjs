@@ -5,8 +5,8 @@ export async function saleStatus(req, res) {
 		cum.push(...current.dispensed);
 		return cum;
 	}, []);
-	const last = reduced.sort((a, b) => b.date - a.date);
-	const first = reduced.sort((a, b) => a.date - b.date);
+	const last = reduced.sort((a, b) => b.date - a.date)[0];
+	const first = reduced.sort((a, b) => a.date - b.date)[0];
 	const count = reduced.length;
 	res.send({
 		start: !!first ? new Date(first.date) : "",
