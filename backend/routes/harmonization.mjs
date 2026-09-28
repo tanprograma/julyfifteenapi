@@ -11,13 +11,13 @@ import {
 	harmonizePurchasesCompressed,
 	harmonizePurchasesDaily,
 	purchaseStatus,
-} from "../controllers/purchase.controller";
+} from "../controllers/purchase.controller.mjs";
 import {
 	harmonizeRequests,
 	harmonizeRequestsCompressed,
 	harmonizeRequestsDaily,
 	requestStatus,
-} from "../controllers/requests.controller";
+} from "../controllers/requests.controller.mjs";
 
 const router = Express.Router();
 
