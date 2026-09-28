@@ -44,6 +44,7 @@ app.use("/api/clients", clients);
 app.use("/api/units", units);
 app.use("/api/medicines", medicines);
 app.use("/api/users", users);
+app.use("/api/harmonization", harmonization);
 
 const PORT = process.env.PORT || 5000;
 app.get("/", (req, res) => {
