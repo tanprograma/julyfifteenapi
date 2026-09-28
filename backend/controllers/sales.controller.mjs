@@ -186,10 +186,8 @@ export function compareDate(item, { $gte, $lte }) {
 	if (!$gte && !!$lte) {
 		return item.date >= $lte;
 	}
-	if (!$gte && !$lte) {
+	if (!!$gte && !$lte) {
 		return item.date <= $gte;
 	}
-	if (!$gte && !!$lte) {
-		return true;
-	}
+	return true;
 }
