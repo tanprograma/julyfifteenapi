@@ -1,4 +1,6 @@
 .env
 /node_modules
 f.mjs
+debug.mjs
+
 testdb.mjs

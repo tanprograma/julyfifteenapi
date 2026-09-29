@@ -55,14 +55,7 @@ export class SaleController {
 						location: current.outlet,
 					};
 				});
-			// console.log({
-			// 	len: current.dispensed.length,
-			// 	filtered: filtered.length,
-			// 	filters: this.parseTime(),
-			// });
-			if (current.dispensed.length > 0) {
-				console.log(current.dispensed);
-			}
+
 			cumm.push(...filtered);
 			return cumm;
 		}, []);
@@ -122,16 +115,16 @@ export class SaleController {
 	}
 	compareDate(item) {
 		const { start, end } = this.parseTime();
-		// if (!!end && !!start) {
-		return item.date <= end && item.date >= start;
-		// }
-		// if (!end && !!start) {
-		// 	return item.date >= start;
-		// }
-		// if (!!end && !start) {
-		// 	return item.date <= end;
-		// }
-		// return true;
+		if (!!end && !!start) {
+			return item.date <= end && item.date >= start;
+		}
+		if (!end && !!start) {
+			return item.date >= start;
+		}
+		if (!!end && !start) {
+			return item.date <= end;
+		}
+		return true;
 	}
 	parseTime() {
 		const { startDate, endDate } = this.query;
@@ -140,13 +133,13 @@ export class SaleController {
 		if (!!startDate) {
 			filter = {
 				...filter,
-				end: new Date(startDate).getTime(),
+				start: new Date(startDate).getTime(),
 			};
 		}
 		if (!!endDate) {
 			filter = {
 				...filter,
-				start: new Date(endDate).getTime(),
+				end: new Date(endDate).getTime(),
 			};
 		}
 		return filter;
