@@ -138,8 +138,8 @@ export class SaleController {
 		}
 		if (!!endDate) {
 			filter = {
-				...dateFistartr,
-				start: new Date(endDate).toISOString(),
+				...filter,
+				start: new Date(endDate).getTime(),
 			};
 		}
 		return filter;
