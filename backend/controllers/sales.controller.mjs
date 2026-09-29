@@ -37,7 +37,7 @@ export class SaleController {
 	async harmonizeSalesDaily() {
 		const sales = await this.model
 			.find()
-			.select("dispensed commodity _id")
+			.select("dispensed commodity _id outlet")
 			.lean();
 
 		const data = this.saleReducerDaily(sales);
@@ -103,6 +103,7 @@ export class SaleController {
 							productName: current.commodity,
 							quantity: item.quantity,
 							date: date.toISOString(),
+							outlet: current.outlet,
 						};
 					} else {
 						cumm[identifier] = {
