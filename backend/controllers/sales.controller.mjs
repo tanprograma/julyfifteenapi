@@ -55,11 +55,14 @@ export class SaleController {
 						location: current.outlet,
 					};
 				});
-			console.log({
-				len: current.dispensed.length,
-				filtered: filtered.length,
-				filters: this.parseTime(),
-			});
+			// console.log({
+			// 	len: current.dispensed.length,
+			// 	filtered: filtered.length,
+			// 	filters: this.parseTime(),
+			// });
+			if (current.dispensed.length > 0) {
+				console.log(current.dispensed);
+			}
 			cumm.push(...filtered);
 			return cumm;
 		}, []);
