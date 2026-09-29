@@ -1,4 +1,3 @@
-import { parseInt } from "lodash";
 import { InventoryModel } from "../models/inventory.mjs";
 export class SaleController {
 	model = InventoryModel;
