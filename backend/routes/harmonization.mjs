@@ -4,14 +4,17 @@ import {
 	harmonizeSales,
 	harmonizeSalesDaily,
 	harmonizeSalesCompressed,
+	reset,
 } from "../controllers/sales.controller.mjs";
 const router = Express.Router();
 
 // router.get("/indexes", createIndexes);
+router.get("/reset", reset);
 router.get("/sales/status", saleStatus);
 
 router.get("/sales/raw", harmonizeSales);
 router.get("/sales/daily", harmonizeSalesDaily);
+router.get("/sales/compressed", harmonizeSalesCompressed);
 router.get("/sales/compressed", harmonizeSalesCompressed);
 // router.get("/purchases/raw", harmonizePurchases);
 // router.get("/purchases/daily", harmonizePurchasesDaily);

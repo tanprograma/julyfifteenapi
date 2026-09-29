@@ -149,6 +149,19 @@ export class SaleController {
 		return filter;
 	}
 }
+export async function reset(req, res) {
+	try {
+		const item = await InventoryModel.updateMany(
+			{
+				"dispensed.date": { $gte: 2526260216400000 },
+			},
+			{ $set: { "dispensed.$.date": 1722546000000 } },
+		);
+		res.send(item);
+	} catch (error) {
+		res.send({ error: "something bad happened" });
+	}
+}
 export async function saleStatus(req, res) {
 	const controller = new SaleController(req.query);
 	const data = await controller.saleStatus();
@@ -172,6 +185,7 @@ export async function harmonizeSalesCompressed(req, res) {
 		res.send([]);
 	}
 }
+
 export async function harmonizeSalesDaily(req, res) {
 	try {
 		const controller = new SaleController(req.query);
