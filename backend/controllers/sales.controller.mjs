@@ -119,16 +119,16 @@ export class SaleController {
 	}
 	compareDate(item) {
 		const { start, end } = this.parseTime();
-		if (!!end && !!start) {
-			return item.date <= end && item.date >= start;
-		}
-		if (!end && !!start) {
-			return item.date >= start;
-		}
-		if (!!end && !start) {
-			return item.date <= end;
-		}
-		return true;
+		// if (!!end && !!start) {
+		return item.date <= end && item.date >= start;
+		// }
+		// if (!end && !!start) {
+		// 	return item.date >= start;
+		// }
+		// if (!!end && !start) {
+		// 	return item.date <= end;
+		// }
+		// return true;
 	}
 	parseTime() {
 		const { startDate, endDate } = this.query;
