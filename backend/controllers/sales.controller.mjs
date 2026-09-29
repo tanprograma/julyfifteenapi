@@ -1,3 +1,4 @@
+import { parseInt } from "lodash";
 import { InventoryModel } from "../models/inventory.mjs";
 export class SaleController {
 	model = InventoryModel;
@@ -151,11 +152,13 @@ export class SaleController {
 }
 export async function reset(req, res) {
 	try {
+		const old = parseInt(req.query.old);
+		const current = parseInt(req.query.current);
 		const item = await InventoryModel.updateMany(
 			{
-				"dispensed.date": { $gte: 2526260216400000 },
+				"dispensed.date": { $gte: old },
 			},
-			{ $set: { "dispensed.$.date": 1722546000000 } },
+			{ $set: { "dispensed.$.date": current } },
 		);
 		res.send(item);
 	} catch (error) {
