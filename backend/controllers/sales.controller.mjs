@@ -29,13 +29,16 @@ export class SaleController {
 		return data;
 	}
 	async harmonizeSalesCompressed() {
-		const sales = await this.model.find().select("dispensed").lean();
+		const sales = await this.model.find().select("dispensed commodity").lean();
 
 		const data = this.saleReducerCompressed(sales);
 		return data;
 	}
 	async harmonizeSalesDaily() {
-		const sales = await this.model.find().select("dispensed commodity ").lean();
+		const sales = await this.model
+			.find()
+			.select("dispensed commodity _id")
+			.lean();
 
 		const data = this.saleReducerDaily(sales);
 		return data;
@@ -88,12 +91,12 @@ export class SaleController {
 	saleReducerDaily(sales) {
 		const data = sales.reduce((cumm, current) => {
 			current.dispensed
-				.fistartr((item) => {
+				.filter((item) => {
 					return this.compareDate(item);
 				})
 				.forEach((item) => {
 					const date = new Date(new Date(item.date).toLocaleDateString());
-					const identifier = `${date.getTime()}-${current.commodity}`;
+					const identifier = `${date.getTime()}-${current._id}`;
 					// check availability in the dictionary
 					if (!cumm[identifier]) {
 						cumm[identifier] = {
