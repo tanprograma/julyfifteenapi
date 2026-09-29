@@ -55,7 +55,11 @@ export class SaleController {
 						location: current.outlet,
 					};
 				});
-			console.log(filtered);
+			console.log({
+				len: current.dispensed.length,
+				filtered: filtered.length,
+				filters: this.parseTime(),
+			});
 			cumm.push(...filtered);
 			return cumm;
 		}, []);
