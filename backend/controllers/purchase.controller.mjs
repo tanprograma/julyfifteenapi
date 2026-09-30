@@ -1,14 +1,14 @@
 import { InventoryModel } from "../models/inventory.mjs";
+
 export class SaleController {
 	model = InventoryModel;
+	dbQuery = { outlet: "MATERIALCONTROL" || "materialcontrol" };
 	constructor(query) {
 		this.query = query;
 	}
+
 	async saleStatus() {
-		const data = await this.model
-			.find({ isWarehouse: true })
-			.select("received")
-			.lean();
+		const data = await this.model.find(this.dbQuery).select("received").lean();
 		const reduced = data.reduce((cum, current) => {
 			cum.push(...current.received);
 			return cum;
@@ -24,7 +24,7 @@ export class SaleController {
 	}
 	async harmonizePurchases() {
 		const sales = await this.model
-			.find({ isWarehouse: true })
+			.find(this.dbQuery)
 			.select("received commodity outlet")
 			.lean();
 
@@ -33,7 +33,7 @@ export class SaleController {
 	}
 	async harmonizePurchasesCompressed() {
 		const sales = await this.model
-			.find({ isWarehouse: true })
+			.find(this.dbQuery)
 			.select("received commodity")
 			.lean();
 
@@ -42,7 +42,7 @@ export class SaleController {
 	}
 	async harmonizePurchasesDaily() {
 		const sales = await this.model
-			.find({ isWarehouse: true })
+			.find(this.dbQuery)
 			.select("received commodity _id outlet")
 			.lean();
 
