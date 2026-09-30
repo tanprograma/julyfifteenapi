@@ -29,7 +29,7 @@ router.get("/sales/raw", harmonizeSales);
 router.get("/sales/daily", harmonizeSalesDaily);
 router.get("/sales/compressed", harmonizeSalesCompressed);
 router.get("/sales/compressed", harmonizeSalesCompressed);
-router.get("/purchases", purchase);
+router.post("/purchases", purchase);
 router.get("/purchases/raw", harmonizePurchases);
 router.get("/purchases/daily", harmonizePurchasesDaily);
 router.get("/purchases/compressed", harmonizePurchasesCompressed);
