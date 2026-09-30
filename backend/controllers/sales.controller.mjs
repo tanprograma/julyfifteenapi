@@ -103,7 +103,7 @@ export class SaleController {
 							productName: current.commodity,
 							quantity: item.quantity,
 							date: date.toISOString(),
-							outlet: current.outlet,
+							location: current.outlet,
 						};
 					} else {
 						cumm[identifier] = {
@@ -115,6 +115,7 @@ export class SaleController {
 
 			return cumm;
 		}, {});
+
 		return Object.values(data).filter((item) => item.quantity > 0);
 	}
 	compareDate(item) {

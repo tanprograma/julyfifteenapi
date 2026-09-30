@@ -1,192 +1,206 @@
-// import { InventoryModel } from "../models/inventory.mjs";
-// export async function purchaseStatus(req, res) {
-// 	const data = await InventoryModel.find({ outlet: "MATERIALCONTROL" })
-// 		.select("received")
-// 		.lean();
-// 	const reduced = data.reduce((cum, current) => {
-// 		cum.push(...current.received);
-// 	}, []);
-// 	const last = await reduced.sort((a, b) => b.date - a.date);
-// 	const first = await reduced.sort((a, b) => a.date - b.date);
-// 	const count = reduced.length;
-// 	res.send({ start: first[0].createdAt, end: last[0].createdAt, count });
-// }
-// export async function harmonizePurchases(req, res) {
-// 	try {
-// 		// creates date filter
-// 		const { startDate, endDate } = req.query;
-// 		let dateFilter = {};
+import { InventoryModel } from "../models/inventory.mjs";
+export class SaleController {
+	model = InventoryModel;
+	constructor(query) {
+		this.query = query;
+	}
+	async saleStatus() {
+		const data = await this.model
+			.find({ isWarehouse: true })
+			.select("received")
+			.lean();
+		const reduced = data.reduce((cum, current) => {
+			cum.push(...current.received);
+			return cum;
+		}, []);
+		const last = reduced.sort((a, b) => b.date - a.date)[0];
+		const first = reduced.sort((a, b) => a.date - b.date)[0];
+		const count = reduced.length;
+		return {
+			start: !!first ? new Date(first.date) : "",
+			end: !!last ? new Date(last.date) : "",
+			count,
+		};
+	}
+	async harmonizePurchases() {
+		const sales = await this.model
+			.find({ isWarehouse: true })
+			.select("received commodity outlet")
+			.lean();
 
-// 		if (!!startDate) {
-// 			dateFilter = {
-// 				...dateFilter,
-// 				$gte: new Date(startDate).getTime(),
-// 			};
-// 		}
-// 		if (!!endDate) {
-// 			dateFilter = {
-// 				...dateFilter,
-// 				$lte: new Date(endDate).getTime(),
-// 			};
-// 		}
+		const data = this.saleReducer(sales);
+		return data;
+	}
+	async harmonizePurchasesCompressed() {
+		const sales = await this.model
+			.find({ isWarehouse: true })
+			.select("received commodity")
+			.lean();
 
-// 		// query db
-// 		const sales = await InventoryModel.find({})
-// 			.select("received commodity outlet")
-// 			.lean();
+		const data = this.saleReducerCompressed(sales);
+		return data;
+	}
+	async harmonizePurchasesDaily() {
+		const sales = await this.model
+			.find({ isWarehouse: true })
+			.select("received commodity _id outlet")
+			.lean();
 
-// 		const data = saleReducer(sales, dateFilter);
-// 		res.send(data);
-// 	} catch (error) {
-// 		res.send([]);
-// 	}
-// }
-// export async function harmonizePurchasesCompressed(req, res) {
-// 	try {
-// 		// creates date filter
-// 		const { startDate, endDate } = req.query;
-// 		let dateFilter = {};
+		const data = this.saleReducerDaily(sales);
+		return data;
+	}
+	saleReducer(sales) {
+		// deconstruct all sales
+		const data = sales.reduce((cumm, current) => {
+			const filtered = current.received
+				.filter((item) => {
+					return this.compareDate(item);
+				})
+				.map((item) => {
+					return {
+						productName: current.commodity,
+						quantity: item.quantity,
+						date: new Date(item.date).toISOString(),
+						location: item.client,
+					};
+				});
 
-// 		if (!!startDate) {
-// 			dateFilter = {
-// 				...dateFilter,
-// 				$gte: new Date(startDate).toISOString(),
-// 			};
-// 		}
-// 		if (!!endDate) {
-// 			dateFilter = {
-// 				...dateFilter,
-// 				$lte: new Date(endDate).toISOString(),
-// 			};
-// 		}
+			cumm.push(...filtered);
+			return cumm;
+		}, []);
+		return data;
+	}
+	saleReducerCompressed(sales) {
+		const data = sales.reduce((cumm, current) => {
+			const quantity = current.received.reduce((total, item) => {
+				return this.compareDate(item) ? total + item.quantity : total;
+			}, 0);
 
-// 		// query db
-// 		const sales = await InventoryModel.find({})
-// 			.select("received commodity outlet")
-// 			.lean();
+			// check availability in the dictionary
+			const identifier = current.commodity;
+			if (!cumm[identifier]) {
+				cumm[identifier] = {
+					productName: identifier,
+					quantity: quantity,
+				};
+			} else {
+				cumm[identifier] = {
+					...cumm[identifier],
+					quantity: cumm[identifier].quantity + quantity,
+				};
+			}
 
-// 		const data = saleReducerCompressed(sales, products);
-// 		res.send(data);
-// 	} catch (error) {
-// 		res.send([]);
-// 	}
-// }
-// export async function harmonizePurchasesDaily(req, res) {
-// 	try {
-// 		// creates date filter
-// 		const { startDate, endDate } = req.query;
-// 		let dateFilter = {};
+			return cumm;
+		}, {});
+		return Object.values(data).filter((item) => item.quantity > 0);
+	}
+	saleReducerDaily(sales) {
+		const data = sales.reduce((cumm, current) => {
+			current.received
+				.filter((item) => {
+					return this.compareDate(item);
+				})
+				.forEach((item) => {
+					const date = new Date(new Date(item.date).toLocaleDateString());
+					const identifier = `${date.getTime()}-${current._id}`;
+					// check availability in the dictionary
+					if (!cumm[identifier]) {
+						cumm[identifier] = {
+							productName: current.commodity,
+							quantity: item.quantity,
+							date: date.toISOString(),
+							location: item.client,
+						};
+					} else {
+						cumm[identifier] = {
+							...cumm[identifier],
+							quantity: cumm[identifier].quantity + item.quantity,
+						};
+					}
+				});
 
-// 		if (!!startDate) {
-// 			dateFilter = {
-// 				...dateFilter,
-// 				$gte: new Date(startDate).toISOString(),
-// 			};
-// 		}
-// 		if (!!endDate) {
-// 			dateFilter = {
-// 				...dateFilter,
-// 				$lte: new Date(endDate).toISOString(),
-// 			};
-// 		}
+			return cumm;
+		}, {});
 
-// 		// query db
-// 		const sales = await InventoryModel.find({})
-// 			.select("received commodity outlet")
-// 			.lean();
+		return Object.values(data).filter((item) => item.quantity > 0);
+	}
+	compareDate(item) {
+		const { start, end } = this.parseTime();
+		if (!!end && !!start) {
+			return item.date <= end && item.date >= start;
+		}
+		if (!end && !!start) {
+			return item.date >= start;
+		}
+		if (!!end && !start) {
+			return item.date <= end;
+		}
+		return true;
+	}
+	parseTime() {
+		const { startDate, endDate } = this.query;
+		let filter = {};
 
-// 		const data = saleReducerDaily(sales, dateFilter);
-// 		res.send(data);
-// 	} catch (error) {
-// 		res.send([]);
-// 	}
-// }
-// export function saleReducer(sales, filter) {
-// 	// deconstruct all sales
-// 	const data = sales.reduce((cumm, current) => {
-// 		cumm.push(
-// 			...current.received
-// 				.filter((item) => {
-// 					return compareDate(item, filter);
-// 				})
-// 				.map((item) => {
-// 					return {
-// 						productName: current.commodity,
-// 						quantity: item.quantity,
-// 						date: new Date(item.date).toISOString(),
-// 						location: current.outlet,
-// 					};
-// 				}),
-// 		);
-// 		return cumm;
-// 	}, []);
-// 	return data;
-// }
+		if (!!startDate) {
+			filter = {
+				...filter,
+				start: new Date(startDate).getTime(),
+			};
+		}
+		if (!!endDate) {
+			filter = {
+				...filter,
+				end: new Date(endDate).getTime(),
+			};
+		}
+		return filter;
+	}
+}
+export async function reset(req, res) {
+	try {
+		const old = parseInt(req.query.old);
+		const current = parseInt(req.query.current);
+		const item = await InventoryModel.updateMany(
+			{
+				"received.date": { $gte: old },
+			},
+			{ $set: { "received.$.date": current } },
+		);
+		res.send(item);
+	} catch (error) {
+		res.send({ error: "something bad happened" });
+	}
+}
+export async function saleStatus(req, res) {
+	const controller = new SaleController(req.query);
+	const data = await controller.saleStatus();
+	res.send(data);
+}
+export async function harmonizePurchases(req, res) {
+	try {
+		const controller = new SaleController(req.query);
+		const data = await controller.harmonizePurchases();
+		res.send(data);
+	} catch (error) {
+		res.send([]);
+	}
+}
+export async function harmonizePurchasesCompressed(req, res) {
+	try {
+		const controller = new SaleController(req.query);
+		const data = await controller.harmonizePurchasesCompressed();
+		res.send(data);
+	} catch (error) {
+		res.send([]);
+	}
+}
 
-// export function saleReducerCompressed(sales, filter) {
-// 	const data = sales.reduce((cumm, current) => {
-// 		const quantity = current.received.reduce((total, item) => {
-// 			return compareDate(item, filter) ? total + item.quantity : total;
-// 		}, 0);
-
-// 		// check availability in the dictionary
-// 		const identifier = current.commodity;
-// 		if (!cumm[identifier]) {
-// 			cumm[identifier] = {
-// 				productName: identifier,
-// 				quantity: quantity,
-// 			};
-// 		} else {
-// 			cumm[identifier] = {
-// 				...cumm[identifier],
-// 				quantity: cumm[identifier].quantity + quantity,
-// 			};
-// 		}
-
-// 		return cumm;
-// 	}, {});
-// 	return Object.values(data).filter((item) => item.quantity > 0);
-// }
-// export function saleReducerDaily(sales, filter) {
-// 	const data = sales.reduce((cumm, current) => {
-// 		current.received
-// 			.filter((item) => {
-// 				return compareDate(item, filter);
-// 			})
-// 			.forEach((item) => {
-// 				const date = new Date(new Date(item.date).toLocaleDateString());
-// 				const identifier = `${date.getTime()}-${current.commodity}`;
-// 				// check availability in the dictionary
-// 				if (!cumm[identifier]) {
-// 					cumm[identifier] = {
-// 						productName: current.commodity,
-// 						quantity: item.quantity,
-// 						date: date.toISOString(),
-// 					};
-// 				} else {
-// 					cumm[identifier] = {
-// 						...cumm[identifier],
-// 						quantity: cumm[identifier].quantity + item.quantity,
-// 					};
-// 				}
-// 			});
-
-// 		return cumm;
-// 	}, {});
-// 	return Object.values(data).filter((item) => item.quantity > 0);
-// }
-// export function compareDate(item, { $gte, $lte }) {
-// 	// filters based on date
-// 	if (!!$gte && !!$lte) {
-// 		return item.date <= $gte && item.date >= $lte;
-// 	}
-// 	if (!$gte && !!$lte) {
-// 		return item.date >= $lte;
-// 	}
-// 	if (!$gte && !$lte) {
-// 		return item.date <= $gte;
-// 	}
-// 	if (!$gte && !!$lte) {
-// 		return true;
-// 	}
-// }
+export async function harmonizePurchasesDaily(req, res) {
+	try {
+		const controller = new SaleController(req.query);
+		const data = await controller.harmonizePurchasesDaily();
+		res.send(data);
+	} catch (error) {
+		res.send([]);
+	}
+}
