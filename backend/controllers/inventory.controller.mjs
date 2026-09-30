@@ -8,7 +8,7 @@ export async function getInventories(req, res) {
 		query = { ...query, outlet };
 	}
 	const inventories = await InventoryModel.find(query)
-		.select("_id,commodity,outlet")
+		.select("_id commodity outlet")
 		.lean();
 	res.send(
 		inventories.map((item) => {
