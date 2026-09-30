@@ -13,9 +13,12 @@ import {
 	harmonizePurchasesCompressed,
 	purchase,
 } from "../controllers/purchase.controller.mjs";
+
+import { getInventories } from "../controllers/inventory.controller.mjs";
 const router = Express.Router();
 
 // router.get("/indexes", createIndexes);
+router.get("/inventories", getInventories);
 router.get("/reset", reset);
 router.get("/sales/status", saleStatus);
 
