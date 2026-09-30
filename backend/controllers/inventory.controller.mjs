@@ -1,4 +1,5 @@
 import { InventoryModel } from "../models/inventory.mjs";
+import { StoreModel } from "../models/store.mjs";
 import { SupplierModel } from "../models/suppliers.mjs";
 export async function getInventories(req, res) {
 	let query = {};
@@ -21,5 +22,9 @@ export async function getInventories(req, res) {
 }
 export async function getSuppliers(req, res) {
 	const suppliers = SupplierModel.find().lean();
+	res.send(suppliers);
+}
+export async function getStores(req, res) {
+	const suppliers = StoreModel.find().lean();
 	res.send(suppliers);
 }

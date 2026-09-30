@@ -16,6 +16,7 @@ import {
 
 import {
 	getInventories,
+	getStores,
 	getSuppliers,
 } from "../controllers/inventory.controller.mjs";
 const router = Express.Router();
@@ -39,5 +40,6 @@ router.get("/purchases/compressed", harmonizePurchasesCompressed);
 // router.get("/requests/status", requestStatus);
 router.get("/purchases/status", purchaseStatus);
 router.get("/suppliers", getSuppliers);
+router.get("/stores", getStores);
 
 export default router;
