@@ -156,22 +156,22 @@ export class SaleController {
 		return filter;
 	}
 }
-export async function reset(req, res) {
-	try {
-		const old = parseInt(req.query.old);
-		const current = parseInt(req.query.current);
-		const item = await InventoryModel.updateMany(
-			{
-				"received.date": { $gte: old },
-			},
-			{ $set: { "received.$.date": current } },
-		);
-		res.send(item);
-	} catch (error) {
-		res.send({ error: "something bad happened" });
-	}
-}
-export async function saleStatus(req, res) {
+// export async function reset(req, res) {
+// 	try {
+// 		const old = parseInt(req.query.old);
+// 		const current = parseInt(req.query.current);
+// 		const item = await InventoryModel.updateMany(
+// 			{
+// 				"received.date": { $gte: old },
+// 			},
+// 			{ $set: { "received.$.date": current } },
+// 		);
+// 		res.send(item);
+// 	} catch (error) {
+// 		res.send({ error: "something bad happened" });
+// 	}
+// }
+export async function purchaseStatus(req, res) {
 	const controller = new SaleController(req.query);
 	const data = await controller.saleStatus();
 	res.send(data);
