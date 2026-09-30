@@ -7,6 +7,22 @@ export class SaleController {
 		this.query = query;
 	}
 
+	async purchase(payload) {
+		try {
+			const { inventoryID, quantity, date, client } = payload;
+
+			const inventory = await this.model.findOne({ _id: inventoryID });
+			inventory.received.push({
+				quantity,
+				date: new Date(date).getTime(),
+				client: client,
+			});
+			await inventory.save();
+			return { saved: true };
+		} catch (error) {
+			return { saved: false };
+		}
+	}
 	async saleStatus() {
 		const data = await this.model.find(this.dbQuery).select("received").lean();
 		const reduced = data.reduce((cum, current) => {
@@ -171,6 +187,11 @@ export class SaleController {
 // 		res.send({ error: "something bad happened" });
 // 	}
 // }
+export async function purchase(req, res) {
+	const controller = new SaleController({ startDate: "", endDate: "" });
+	const data = await controller.purchase(req.body);
+	res.send(data);
+}
 export async function purchaseStatus(req, res) {
 	const controller = new SaleController(req.query);
 	const data = await controller.saleStatus();

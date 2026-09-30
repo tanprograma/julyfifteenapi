@@ -11,6 +11,7 @@ import {
 	harmonizePurchases,
 	harmonizePurchasesDaily,
 	harmonizePurchasesCompressed,
+	purchase,
 } from "../controllers/purchase.controller.mjs";
 const router = Express.Router();
 
@@ -22,6 +23,7 @@ router.get("/sales/raw", harmonizeSales);
 router.get("/sales/daily", harmonizeSalesDaily);
 router.get("/sales/compressed", harmonizeSalesCompressed);
 router.get("/sales/compressed", harmonizeSalesCompressed);
+router.get("/purchases", purchase);
 router.get("/purchases/raw", harmonizePurchases);
 router.get("/purchases/daily", harmonizePurchasesDaily);
 router.get("/purchases/compressed", harmonizePurchasesCompressed);
