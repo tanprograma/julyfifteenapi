@@ -7,7 +7,7 @@ export async function getInventories(req, res) {
 	if (!!outlet) {
 		query = { ...query, outlet };
 	}
-	const inventories = InventoryModel.find(query)
+	const inventories = await InventoryModel.find(query)
 		.select("_id,commodity,outlet")
 		.lean();
 	res.send(
@@ -21,10 +21,10 @@ export async function getInventories(req, res) {
 	);
 }
 export async function getSuppliers(req, res) {
-	const suppliers = SupplierModel.find().lean();
+	const suppliers = await SupplierModel.find().lean();
 	res.send(suppliers);
 }
 export async function getStores(req, res) {
-	const suppliers = StoreModel.find().lean();
+	const suppliers = await StoreModel.find().lean();
 	res.send(suppliers);
 }
