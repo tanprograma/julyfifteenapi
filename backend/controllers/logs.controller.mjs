@@ -40,13 +40,13 @@ export class LogController {
 		if (!!startDate) {
 			filter = {
 				...filter,
-				$gte: new Date(startDate).getTime(),
+				$gte: new Date(startDate),
 			};
 		}
 		if (!!endDate) {
 			filter = {
 				...filter,
-				$lte: new Date(endDate).getTime(),
+				$lte: new Date(endDate),
 			};
 		}
 		return filter;
