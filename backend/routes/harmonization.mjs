@@ -1,4 +1,5 @@
 import Express from "express";
+import { getLogsStatus, getLogs } from "../controllers/logs.controller.mjs";
 import {
 	saleStatus,
 	harmonizeSales,
@@ -41,5 +42,8 @@ router.get("/purchases/compressed", harmonizePurchasesCompressed);
 router.get("/purchases/status", purchaseStatus);
 router.get("/suppliers", getSuppliers);
 router.get("/stores", getStores);
+// logs
+router.get("/logs/status", getLogsStatus);
+router.get("/logs", getLogs);
 
 export default router;
