@@ -1,8 +1,12 @@
 import { InventoryModel } from "../models/inventory.mjs";
 export class SaleController {
 	model = InventoryModel;
-	constructor(query) {
+	constructor(query = {}) {
 		this.query = query;
+	}
+	async createSale(payload) {
+		const data = await this.model.create(payload);
+		return data;
 	}
 	async saleStatus() {
 		const data = await this.model.find().select("dispensed").lean();
@@ -148,6 +152,15 @@ export class SaleController {
 			};
 		}
 		return filter;
+	}
+}
+export async function createSale(req, res) {
+	try {
+		const controller = new SaleController(req.query);
+		const data = await controller.createSale(req.body);
+		res.send({ status: true, data });
+	} catch (error) {
+		res.send({ status: false, error: "could not create a sale" });
 	}
 }
 export async function reset(req, res) {

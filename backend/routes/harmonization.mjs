@@ -6,6 +6,7 @@ import {
 	harmonizeSalesDaily,
 	harmonizeSalesCompressed,
 	reset,
+	createSale,
 } from "../controllers/sales.controller.mjs";
 import {
 	purchaseStatus,
@@ -20,26 +21,40 @@ import {
 	getStores,
 	getSuppliers,
 } from "../controllers/inventory.controller.mjs";
+import {
+	createRequest,
+	harmonizeRequests,
+	harmonizeRequestsCompressed,
+	harmonizeRequestsDaily,
+	requestStatus,
+} from "../controllers/requests.controller.mjs";
 const router = Express.Router();
 
 // router.get("/indexes", createIndexes);
 router.get("/inventories", getInventories);
 router.get("/reset", reset);
-router.get("/sales/status", saleStatus);
 
+// sales
+router.get("/sales/status", saleStatus);
 router.get("/sales/raw", harmonizeSales);
 router.get("/sales/daily", harmonizeSalesDaily);
 router.get("/sales/compressed", harmonizeSalesCompressed);
-router.get("/sales/compressed", harmonizeSalesCompressed);
-router.post("/purchases", purchase);
+router.post("/sales", createSale);
+
+// requests
+router.get("/requests/raw", harmonizeRequests);
+router.get("/requests/daily", harmonizeRequestsDaily);
+router.get("/requests/compressed", harmonizeRequestsCompressed);
+router.get("/requests/status", requestStatus);
+router.post("/requests", createRequest);
+
+// purchases
+router.get("/purchases/status", purchaseStatus);
 router.get("/purchases/raw", harmonizePurchases);
 router.get("/purchases/daily", harmonizePurchasesDaily);
 router.get("/purchases/compressed", harmonizePurchasesCompressed);
-// router.get("/requests/raw/:clinic", harmonizeRequests);
-// router.get("/requests/daily/:clinic", harmonizeRequestsDaily);
-// router.get("/requests/compressed/:clinic", harmonizeRequestsCompressed);
-// router.get("/requests/status", requestStatus);
-router.get("/purchases/status", purchaseStatus);
+router.post("/purchases", purchase);
+
 router.get("/suppliers", getSuppliers);
 router.get("/stores", getStores);
 // logs
