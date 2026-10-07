@@ -35,7 +35,10 @@ export class RequestController {
 		}
 	}
 	async requestStatus() {
-		const data = await this.model.find(this.query).select("received").lean();
+		const data = await this.model
+			.find({ outlet: this.query.store })
+			.select("received")
+			.lean();
 		const reduced = data.reduce((cum, current) => {
 			cum.push(...current.received);
 			return cum;
@@ -51,7 +54,7 @@ export class RequestController {
 	}
 	async harmonizeRequests() {
 		const sales = await this.model
-			.find(this.query)
+			.find({ outlet: this.query.store })
 			.select("received commodity outlet")
 			.lean();
 
@@ -60,7 +63,7 @@ export class RequestController {
 	}
 	async harmonizeRequestsCompressed() {
 		const sales = await this.model
-			.find(this.query)
+			.find({ outlet: this.query.store })
 			.select("received commodity")
 			.lean();
 
@@ -69,7 +72,7 @@ export class RequestController {
 	}
 	async harmonizeRequestsDaily() {
 		const sales = await this.model
-			.find(this.query)
+			.find({ outlet: this.query.store })
 			.select("received commodity _id outlet")
 			.lean();
 
